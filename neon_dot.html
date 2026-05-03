@@ -1,0 +1,1761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NEON DOT // Modern Pac-Man</title>
+<style>
+  :root {
+    --bg-1: #020617;
+    --bg-2: #0a0e1a;
+    --wall: #22d3ee;
+    --wall-dark: #155e75;
+    --dot: #a5f3fc;
+    --pellet: #fde047;
+    --pac: #fbbf24;
+    --pac-glow: #fde047;
+    --red: #ef4444;
+    --magenta: #ec4899;
+    --cyan: #22d3ee;
+    --orange: #fb923c;
+    --green: #4ade80;
+    --scared: #3b82f6;
+    --scared-flash: #f8fafc;
+    --yellow: #fde047;
+    --slate: #94a3b8;
+    --slate-d: #475569;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    height: 100%; width: 100%; overflow: hidden;
+    background: radial-gradient(ellipse at center, #0a0e1a 0%, #020617 100%);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #e2e8f0;
+    user-select: none;
+  }
+  #container {
+    position: relative; width: 100vw; height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  #canvas {
+    display: block;
+    box-shadow: 0 0 60px rgba(34, 211, 238, 0.25), 0 0 120px rgba(236, 72, 153, 0.1);
+    border-radius: 4px;
+    background: var(--bg-1);
+  }
+  /* HUD */
+  .hud {
+    position: absolute; pointer-events: none; z-index: 10;
+    font-family: "Courier New", "Consolas", monospace;
+    text-shadow: 0 0 10px currentColor;
+  }
+  .hud-corner {
+    padding: 14px 20px;
+    background: rgba(2, 6, 23, 0.7);
+    border: 1px solid rgba(34, 211, 238, 0.3);
+    border-radius: 6px;
+    backdrop-filter: blur(6px);
+  }
+  .hud-corner.tl { top: 16px; left: 16px; }
+  .hud-corner.tr { top: 16px; right: 16px; }
+  .hud-corner.br { bottom: 16px; right: 16px; min-width: 240px; }
+
+  .stat-label {
+    font-size: 10px; letter-spacing: 3px;
+    color: var(--slate); margin-bottom: 4px;
+    text-shadow: none;
+  }
+  .stat-value {
+    font-size: 22px; font-weight: 800; letter-spacing: 1.5px;
+    color: var(--cyan);
+  }
+  .stat-row { display: flex; gap: 24px; }
+  .stat-block { display: flex; flex-direction: column; }
+
+  #lives-row { display: flex; gap: 4px; align-items: center; margin-top: 6px; }
+  .life-icon {
+    width: 14px; height: 14px;
+    background: radial-gradient(circle at 35% 30%, #fbbf24, #92400e);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--pac), inset -2px -2px 4px rgba(0,0,0,0.4);
+  }
+  .life-icon.spent {
+    background: #1e293b; box-shadow: none;
+  }
+
+  .stage {
+    font-size: 14px; letter-spacing: 4px; font-weight: 700;
+    color: var(--cyan); margin-bottom: 6px;
+  }
+  .hint {
+    font-size: 10px; letter-spacing: 2px; color: var(--slate);
+    text-shadow: none;
+  }
+
+  /* Top center status */
+  .center-status {
+    position: absolute; top: 16px; left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 24px;
+    background: rgba(2, 6, 23, 0.7);
+    border: 1px solid rgba(34, 211, 238, 0.3);
+    border-radius: 6px;
+    text-align: center;
+    z-index: 11;
+    pointer-events: none;
+  }
+
+  /* Buttons */
+  .iconbtn {
+    position: absolute;
+    width: 36px; height: 36px;
+    background: rgba(2, 6, 23, 0.7);
+    border: 1px solid rgba(34, 211, 238, 0.4);
+    color: var(--cyan);
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit; font-size: 12px; font-weight: 800;
+    letter-spacing: 1px;
+    backdrop-filter: blur(6px);
+    transition: all 0.2s ease;
+    z-index: 20;
+  }
+  .iconbtn:hover { border-color: var(--cyan); box-shadow: 0 0 12px rgba(34, 211, 238, 0.5); }
+  .iconbtn.active {
+    color: var(--yellow); border-color: var(--yellow);
+    box-shadow: 0 0 14px rgba(253, 224, 71, 0.5);
+  }
+  #mute-btn  { top: 16px; right: 16px; }
+  #music-btn { top: 16px; right: 60px; }
+  #ai-btn    { top: 60px; right: 16px; width: 56px; }
+
+  /* Wave/level toast */
+  #wave-toast {
+    position: absolute; left: 50%; top: 38%;
+    transform: translate(-50%, -50%) scale(0.8);
+    text-align: center; opacity: 0;
+    transition: opacity 0.3s ease, transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
+    pointer-events: none; z-index: 20;
+  }
+  #wave-toast.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  #wave-toast .pre {
+    font-size: 14px; letter-spacing: 8px; color: var(--cyan);
+    font-family: "Courier New", monospace; margin-bottom: 8px;
+  }
+  #wave-toast .main {
+    font-size: 56px; font-weight: 900; color: var(--yellow);
+    text-shadow: 0 0 30px var(--pac), 0 0 60px var(--pac);
+    font-family: "Courier New", monospace;
+  }
+
+  /* Score floater overlay */
+  #score-floaters {
+    position: absolute; top: 0; left: 0; pointer-events: none;
+    width: 100%; height: 100%; z-index: 8;
+  }
+
+  /* Start screen */
+  #start-screen, #game-over {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, rgba(10, 14, 26, 0.9), rgba(2, 6, 23, 0.97));
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 100; padding: 40px;
+    backdrop-filter: blur(8px);
+  }
+  #start-screen.hidden, #game-over.hidden { display: none; }
+  .game-title {
+    font-family: "Courier New", monospace;
+    font-size: 64px; font-weight: 900;
+    background: linear-gradient(180deg, #fde047 0%, #fb923c 60%, #ec4899 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 8px;
+    text-shadow: 0 0 80px rgba(253, 224, 71, 0.4);
+    margin-bottom: 8px;
+  }
+  .game-subtitle {
+    font-family: "Courier New", monospace;
+    font-size: 13px; letter-spacing: 6px; color: var(--cyan);
+    text-shadow: 0 0 12px var(--cyan); margin-bottom: 36px;
+  }
+  .panel {
+    border: 1px solid rgba(34, 211, 238, 0.3);
+    background: rgba(2, 6, 23, 0.6);
+    padding: 20px 28px; border-radius: 8px;
+    margin-bottom: 16px; max-width: 540px; width: 100%;
+  }
+  .panel-title {
+    font-family: "Courier New", monospace; font-size: 11px;
+    letter-spacing: 3px; color: var(--magenta); margin-bottom: 10px;
+    text-shadow: 0 0 8px var(--magenta);
+  }
+  .controls-grid {
+    display: grid; grid-template-columns: auto 1fr; gap: 6px 16px;
+    font-family: "Courier New", monospace; font-size: 11px;
+  }
+  .controls-grid kbd {
+    background: rgba(34, 211, 238, 0.1);
+    border: 1px solid rgba(34, 211, 238, 0.4);
+    border-radius: 4px; padding: 2px 8px;
+    color: var(--cyan); text-align: center; min-width: 28px;
+  }
+  .controls-grid span { color: #cbd5e1; letter-spacing: 0.5px; }
+
+  .play-btn {
+    margin-top: 16px;
+    padding: 14px 48px;
+    background: linear-gradient(180deg, var(--yellow), var(--orange));
+    color: #1e293b; border: none;
+    font-family: "Courier New", monospace;
+    font-size: 18px; font-weight: 900; letter-spacing: 4px;
+    border-radius: 6px; cursor: pointer;
+    box-shadow: 0 0 30px rgba(253, 224, 71, 0.5);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .play-btn:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 0 50px rgba(253, 224, 71, 0.7);
+  }
+
+  .game-over-stats {
+    font-family: "Courier New", monospace;
+    color: var(--slate); font-size: 14px; letter-spacing: 2px;
+    margin: 16px 0;
+  }
+  .game-over-stats .num {
+    color: var(--yellow); font-weight: 800; font-size: 20px;
+    text-shadow: 0 0 8px var(--pac); margin: 0 6px;
+  }
+</style>
+</head>
+<body>
+<div id="container">
+  <canvas id="canvas" width="1100" height="700"></canvas>
+
+  <!-- HUD: score top-left -->
+  <div class="hud hud-corner tl" id="hud-tl">
+    <div class="stat-row">
+      <div class="stat-block">
+        <div class="stat-label">SCORE</div>
+        <div class="stat-value" id="score-val" style="color: var(--yellow); text-shadow: 0 0 12px var(--pac);">0</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-label">LEVEL</div>
+        <div class="stat-value" id="level-val">1</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-label">COMBO</div>
+        <div class="stat-value" id="combo-val" style="color: var(--magenta); text-shadow: 0 0 12px var(--magenta);">×1</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top right: lives + dots -->
+  <div class="hud hud-corner tr" id="hud-tr" style="right: 100px;">
+    <div class="stat-block">
+      <div class="stat-label">LIVES</div>
+      <div id="lives-row"></div>
+    </div>
+    <div class="stat-block" style="margin-top: 10px;">
+      <div class="stat-label">DOTS</div>
+      <div class="stat-value" id="dots-val" style="color: var(--cyan);">0</div>
+    </div>
+  </div>
+
+  <!-- Center status -->
+  <div class="center-status" id="center-status">
+    <div class="stage" id="stage-text">— READY —</div>
+    <div class="hint" id="hint-text">Arrow keys to move</div>
+  </div>
+
+  <!-- Wave toast -->
+  <div id="wave-toast">
+    <div class="pre">LEVEL</div>
+    <div class="main" id="wave-main">2</div>
+  </div>
+
+  <button id="mute-btn"  class="iconbtn" title="Mute SFX (M)">🔊</button>
+  <button id="music-btn" class="iconbtn" title="Mute Music">♪</button>
+  <button id="ai-btn"    class="iconbtn" title="Toggle AI Mode (Y)">AI</button>
+
+  <!-- Start screen -->
+  <div id="start-screen">
+    <div class="game-title">NEON DOT</div>
+    <div class="game-subtitle">// SYNTHWAVE PAC-MAN //</div>
+
+    <div class="panel">
+      <div class="panel-title">▸ Controls</div>
+      <div class="controls-grid">
+        <kbd>← ↑ → ↓</kbd> <span>Move Pac-Man through the maze</span>
+        <kbd>Y</kbd>      <span>Toggle AI agent (auto-play)</span>
+        <kbd>M</kbd>      <span>Mute SFX</span>
+        <kbd>P</kbd>      <span>Pause</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">▸ Rules</div>
+      <div style="font-size: 12px; color: #cbd5e1; line-height: 1.7; letter-spacing: 0.5px;">
+        Eat all <span style="color: var(--dot);">cyan dots</span> to clear the level.
+        Grab a <span style="color: var(--pellet);">power pellet</span> to make ghosts
+        <span style="color: var(--scared);">vulnerable</span> for a few seconds — chase and
+        eat them for big bonus points. Avoid touching ghosts otherwise. Combo multiplier
+        builds up while you eat without stopping; standing still or hitting a ghost resets it.
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">▸ AI Agent</div>
+      <div style="font-size: 12px; color: #cbd5e1; line-height: 1.7; letter-spacing: 0.5px;">
+        Hit <kbd style="background: rgba(34,211,238,0.1); border: 1px solid rgba(34,211,238,0.4); border-radius: 4px; padding: 1px 6px; color: var(--cyan);">Y</kbd>
+        or click <kbd style="background: rgba(253,224,71,0.1); border: 1px solid rgba(253,224,71,0.4); border-radius: 4px; padding: 1px 6px; color: var(--yellow);">AI</kbd>
+        to engage the planning agent. It runs BFS distance maps from Pac-Man,
+        scores each candidate intersection move with a value function combining
+        <span style="color: var(--cyan);">food proximity</span>,
+        <span style="color: var(--red);">ghost danger penalty</span>,
+        <span style="color: var(--pellet);">pellet timing</span>, and
+        <span style="color: var(--scared);">scared-ghost bounty</span>. To plug in
+        your own policy, set <span style="color: var(--cyan);">game.policy = (obs) =&gt; 'up'|'down'|'left'|'right'</span>
+        from the dev console.
+      </div>
+    </div>
+
+    <button class="play-btn" id="play-btn">START</button>
+  </div>
+
+  <!-- Game over -->
+  <div id="game-over" class="hidden">
+    <div class="game-title" style="font-size: 48px;">GAME OVER</div>
+    <div class="game-subtitle">// FINAL TALLY //</div>
+    <div class="game-over-stats">
+      Score <span class="num" id="final-score">0</span>
+      Level <span class="num" id="final-level">1</span>
+      Dots eaten <span class="num" id="final-dots">0</span>
+    </div>
+    <button class="play-btn" id="restart-btn">RESTART</button>
+  </div>
+
+  <div id="score-floaters"></div>
+</div>
+
+<script>
+'use strict';
+
+/* =========================================================================
+ * NEON DOT — Synthwave Pac-Man with planning agent
+ * ========================================================================= */
+
+const COLS = 19;
+const ROWS = 21;
+const CELL = 28;
+const CANVAS_W = 1100;
+const CANVAS_H = 700;
+const GRID_W = COLS * CELL;        // 532
+const GRID_H = ROWS * CELL;        // 588
+const GRID_OX = (CANVAS_W - GRID_W) / 2;
+const GRID_OY = (CANVAS_H - GRID_H) / 2 + 10;
+
+const SPEED_PAC = 5.4;
+const SPEED_GHOST = 4.6;
+const SPEED_GHOST_SCARED = 2.8;
+const SPEED_GHOST_EATEN = 9;
+const SCARED_TIME = 7.5;
+const SCARED_FLASH_AT = 2.0;       // ghosts flash white/blue near end
+
+const MAZE = [
+  "###################",
+  "#........#........#",
+  "#o##.###.#.###.##o#",
+  "#.................#",
+  "#.##.#.#####.#.##.#",
+  "#....#...#...#....#",
+  "####.###.#.###.####",
+  "   #.#       #.#   ",
+  "####.# ##-## #.####",
+  "   #.# G G G #.#   ",
+  "####.# ##### #.####",
+  "   #.#       #.#   ",
+  "####.### # ###.####",
+  "#........#........#",
+  "#.##.###.#.###.##.#",
+  "#o..#.......#....o#",
+  "###.#.#####.#.#.###",
+  "#.....#.....#.....#",
+  "#.###.#####.#####.#",
+  "#........P........#",
+  "###################",
+];
+
+const DIRS = {
+  up:    { x: 0, y: -1 },
+  down:  { x: 0, y: 1 },
+  left:  { x: -1, y: 0 },
+  right: { x: 1, y: 0 },
+  none:  { x: 0, y: 0 },
+};
+const DIR_NAMES = ['up', 'down', 'left', 'right'];
+
+function reverseDir(name) {
+  return { up:'down', down:'up', left:'right', right:'left', none:'none' }[name];
+}
+
+/* =========================================================================
+ * Audio
+ * ========================================================================= */
+class Sfx {
+  constructor() {
+    this.ctx = null; this.muted = false;
+  }
+  _ensure() {
+    if (this.ctx) return;
+    try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch(e) { this.muted = true; }
+  }
+  _tone(freq, dur, type='sine', gain=0.1, freqEnd=null) {
+    if (this.muted) return;
+    this._ensure();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    o.type = type; o.frequency.value = freq;
+    if (freqEnd !== null) o.frequency.exponentialRampToValueAtTime(Math.max(40, freqEnd), now + dur);
+    g.gain.value = 0;
+    g.gain.linearRampToValueAtTime(gain, now + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    o.connect(g); g.connect(this.ctx.destination);
+    o.start(now); o.stop(now + dur);
+  }
+  dot()   { this._tone(720 + Math.random()*60, 0.04, 'square', 0.05); }
+  pellet(){ this._tone(540, 0.18, 'sawtooth', 0.08, 220); }
+  eatGhost(){
+    this._tone(380, 0.08, 'square', 0.1);
+    setTimeout(()=>this._tone(560, 0.08, 'square', 0.1), 80);
+    setTimeout(()=>this._tone(740, 0.12, 'square', 0.1), 160);
+  }
+  death(){
+    this._tone(440, 0.1, 'sawtooth', 0.13, 110);
+    setTimeout(()=>this._tone(220, 0.18, 'sawtooth', 0.12, 80), 100);
+  }
+  levelUp(){
+    [440, 554, 659, 880].forEach((f,i) => setTimeout(()=>this._tone(f, 0.12, 'square', 0.08), i*80));
+  }
+  start(){ this._tone(330, 0.1, 'square', 0.07); setTimeout(()=>this._tone(660, 0.15, 'square', 0.07), 110); }
+  toggle(){ this.muted = !this.muted; }
+}
+
+class Music {
+  constructor() {
+    this.ctx = null; this.muted = false;
+    this.timer = null;
+    this.bar = 0;
+  }
+  _ensure() {
+    if (this.ctx) return;
+    try { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch(e) { this.muted = true; }
+  }
+  start() {
+    if (this.muted) return;
+    this._ensure();
+    if (!this.ctx || this.timer) return;
+    this.bar = 0;
+    const bpm = 116;
+    const stepMs = 60000 / bpm / 4;  // 16th notes
+    this.timer = setInterval(() => this._step(), stepMs);
+  }
+  stop() {
+    if (this.timer) { clearInterval(this.timer); this.timer = null; }
+  }
+  toggle() {
+    this.muted = !this.muted;
+    if (this.muted) this.stop();
+    else this.start();
+  }
+  _step() {
+    if (!this.ctx || this.muted) return;
+    const t = this.bar;
+    // Em - C - G - D progression
+    const chord = [
+      [82.41, 123.47, 164.81, 196.00],   // Em
+      [65.41, 130.81, 164.81, 196.00],   // C
+      [98.00, 123.47, 196.00, 246.94],   // G
+      [73.42, 110.00, 146.83, 220.00],   // D
+    ];
+    const ci = Math.floor(t / 16) % 4;
+    const c = chord[ci];
+    const beat = t % 16;
+    // Bass
+    if (beat % 4 === 0) this._note(c[0]/2, 0.25, 'sawtooth', 0.04);
+    // Pad on beat 0
+    if (beat === 0) {
+      this._note(c[1], 1.5, 'triangle', 0.025);
+      this._note(c[2], 1.5, 'triangle', 0.018);
+      this._note(c[3], 1.5, 'triangle', 0.018);
+    }
+    // Hi-hat 8ths
+    if (beat % 2 === 0) this._noise(0.025, 0.014);
+    // Lead arp
+    if ((ci % 2 === 0) && (beat === 4 || beat === 12)) {
+      this._note(c[2]*2, 0.15, 'square', 0.025);
+    }
+    this.bar++;
+  }
+  _note(freq, dur, type, gain) {
+    const now = this.ctx.currentTime;
+    const o = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    const f = this.ctx.createBiquadFilter();
+    f.type = 'lowpass'; f.frequency.value = 3000;
+    o.type = type; o.frequency.value = freq;
+    g.gain.value = 0;
+    g.gain.linearRampToValueAtTime(gain, now + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    o.connect(f); f.connect(g); g.connect(this.ctx.destination);
+    o.start(now); o.stop(now + dur);
+  }
+  _noise(dur, gain) {
+    const now = this.ctx.currentTime;
+    const buf = this.ctx.createBuffer(1, this.ctx.sampleRate*dur, this.ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random()*2-1) * 0.4;
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf;
+    const g = this.ctx.createGain();
+    g.gain.value = gain;
+    g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+    const f = this.ctx.createBiquadFilter();
+    f.type = 'highpass'; f.frequency.value = 6000;
+    src.connect(f); f.connect(g); g.connect(this.ctx.destination);
+    src.start(now);
+  }
+}
+
+/* =========================================================================
+ * Grid — parses the maze string into typed cells
+ * ========================================================================= */
+class Grid {
+  constructor() {
+    this.cells = [];
+    this.dotCount = 0; this.pelletCount = 0;
+    this.pacStart = { x: 9, y: 19 };
+    this.ghostSpawns = [];
+    for (let y = 0; y < ROWS; y++) {
+      const row = [];
+      for (let x = 0; x < COLS; x++) {
+        const ch = MAZE[y][x];
+        const cell = { x, y, wall: false, dot: false, pellet: false, door: false, ghostHouse: false };
+        if (ch === '#') cell.wall = true;
+        else if (ch === '.') { cell.dot = true; this.dotCount++; }
+        else if (ch === 'o') { cell.pellet = true; this.pelletCount++; }
+        else if (ch === '-') cell.door = true;
+        else if (ch === 'G') { cell.ghostHouse = true; this.ghostSpawns.push({x, y}); }
+        else if (ch === 'P') this.pacStart = { x, y };
+        // ' ' empty
+        row.push(cell);
+      }
+      this.cells.push(row);
+    }
+    this.totalDots = this.dotCount + this.pelletCount;
+  }
+  get(x, y) {
+    if (y < 0 || y >= ROWS) return null;
+    if (x < 0 || x >= COLS) return null;
+    return this.cells[y][x];
+  }
+  isWall(x, y) {
+    const c = this.get(x, y);
+    return !c || c.wall;
+  }
+  isDoor(x, y) {
+    const c = this.get(x, y);
+    return c && c.door;
+  }
+  /** Can a Pac-Man-like entity move here? */
+  canPacMove(x, y) {
+    const c = this.get(x, y);
+    if (!c) return false;
+    return !c.wall && !c.door;
+  }
+  /** Can a ghost move here? (ghosts can pass the door) */
+  canGhostMove(x, y, allowDoor=false) {
+    const c = this.get(x, y);
+    if (!c) return false;
+    if (c.wall) return false;
+    if (c.door && !allowDoor) return false;
+    return true;
+  }
+  reset() {
+    // Restore dots & pellets after a level
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        const ch = MAZE[y][x];
+        const c = this.cells[y][x];
+        c.dot = (ch === '.');
+        c.pellet = (ch === 'o');
+      }
+    }
+    this.dotCount = MAZE.reduce((s, r) => s + (r.match(/\./g)||[]).length, 0);
+    this.pelletCount = MAZE.reduce((s, r) => s + (r.match(/o/g)||[]).length, 0);
+  }
+  /** BFS distance map from (sx, sy) over Pac-passable cells. */
+  bfsDist(sx, sy) {
+    const dist = Array.from({length: ROWS}, () => new Array(COLS).fill(-1));
+    if (sx < 0 || sx >= COLS || sy < 0 || sy >= ROWS) return dist;
+    dist[sy][sx] = 0;
+    const q = [[sx, sy]];
+    let head = 0;
+    while (head < q.length) {
+      const [x, y] = q[head++];
+      for (const k of DIR_NAMES) {
+        const d = DIRS[k];
+        let nx = x + d.x, ny = y + d.y;
+        // Tunnel wrap on row 9
+        if (nx < 0) nx = COLS - 1;
+        else if (nx >= COLS) nx = 0;
+        if (ny < 0 || ny >= ROWS) continue;
+        if (!this.canPacMove(nx, ny)) continue;
+        if (dist[ny][nx] !== -1) continue;
+        dist[ny][nx] = dist[y][x] + 1;
+        q.push([nx, ny]);
+      }
+    }
+    return dist;
+  }
+}
+
+/* =========================================================================
+ * Mover — base class for grid-aligned smooth movement
+ * ========================================================================= */
+class Mover {
+  constructor(grid, x, y) {
+    this.grid = grid;
+    this.cx = x; this.cy = y;
+    this.prevCx = x; this.prevCy = y;
+    this.t = 1;
+    this.dir = 'none';
+    this.nextDir = 'none';
+    this.speed = SPEED_PAC;
+  }
+  // pixel-space position
+  get px() {
+    let dx = this.cx - this.prevCx;
+    if (dx > 1) dx = -1;            // tunnel wrap
+    if (dx < -1) dx = 1;
+    return GRID_OX + CELL * (this.prevCx + dx * this.t + 0.5);
+  }
+  get py() {
+    return GRID_OY + CELL * (this.prevCy + (this.cy - this.prevCy) * this.t + 0.5);
+  }
+  canMoveTo(nx, ny) {
+    return this.grid.canPacMove(nx, ny);
+  }
+  step(dt) {
+    if (this.t >= 1) {
+      this._onArrive();
+      this._decide();
+      const d = DIRS[this.dir];
+      let nx = this.cx + d.x;
+      let ny = this.cy + d.y;
+      // Tunnel wrap
+      if (nx < 0) nx = COLS - 1;
+      else if (nx >= COLS) nx = 0;
+      if (this.dir !== 'none' && this.canMoveTo(nx, ny)) {
+        this.prevCx = this.cx;
+        this.prevCy = this.cy;
+        this.cx = nx;
+        this.cy = ny;
+        this.t = 0;
+      } else {
+        this.dir = 'none';
+        this.t = 1;
+      }
+    } else {
+      this.t += this.speed * dt;
+      if (this.t > 1) this.t = 1;
+    }
+  }
+  _onArrive() {}
+  _decide() {}
+}
+
+/* =========================================================================
+ * Pacman — player-controlled or AI-driven
+ * ========================================================================= */
+class Pacman extends Mover {
+  constructor(grid, x, y) {
+    super(grid, x, y);
+    this.speed = SPEED_PAC;
+    this.facing = 'right';
+    this.mouth = 0;
+    this.dead = false;
+    this.deadT = 0;
+  }
+  _decide() {
+    // Game sets this.nextDir; we follow it if valid, else keep current.
+    const nd = DIRS[this.nextDir];
+    if (this.nextDir !== 'none') {
+      let nx = this.cx + nd.x, ny = this.cy + nd.y;
+      if (nx < 0) nx = COLS - 1;
+      else if (nx >= COLS) nx = 0;
+      if (this.canMoveTo(nx, ny)) {
+        this.dir = this.nextDir;
+        this.facing = this.dir;
+        return;
+      }
+    }
+    // Continue current direction if possible
+    if (this.dir !== 'none') {
+      const cd = DIRS[this.dir];
+      let nx = this.cx + cd.x, ny = this.cy + cd.y;
+      if (nx < 0) nx = COLS - 1;
+      else if (nx >= COLS) nx = 0;
+      if (!this.canMoveTo(nx, ny)) this.dir = 'none';
+      else this.facing = this.dir;
+    }
+  }
+}
+
+/* =========================================================================
+ * Ghost — classic targeting AI
+ * ========================================================================= */
+class Ghost extends Mover {
+  constructor(grid, x, y, color, name, personality) {
+    super(grid, x, y);
+    this.spawn = { x, y };
+    this.color = color;
+    this.name = name;
+    this.personality = personality;
+    this.speed = SPEED_GHOST;
+    this.mode = 'house';  // house | chase | scatter | scared | eaten
+    this.scaredTimer = 0;
+    this.modeTimer = 0;
+    this.scatterCorner = { x: 1, y: 1 };
+    this.eyesPhase = 0;
+    this.releaseDelay = 0;
+    this.released = false;
+  }
+  setReleaseDelay(s) { this.releaseDelay = s; }
+  becomeScared() {
+    if (this.mode === 'eaten') return;
+    this.mode = 'scared';
+    this.scaredTimer = SCARED_TIME;
+    this.speed = SPEED_GHOST_SCARED;
+    // Reverse direction at next decision
+    this.forcedReverse = true;
+  }
+  becomeEaten() {
+    this.mode = 'eaten';
+    this.scaredTimer = 0;
+    this.speed = SPEED_GHOST_EATEN;
+    this.forcedReverse = true;
+  }
+  resetToSpawn() {
+    this.cx = this.spawn.x; this.cy = this.spawn.y;
+    this.prevCx = this.cx; this.prevCy = this.cy;
+    this.t = 1; this.dir = 'none';
+    this.mode = 'house'; this.released = false;
+    this.scaredTimer = 0;
+    this.speed = SPEED_GHOST;
+  }
+  canMoveTo(nx, ny) {
+    const allowDoor = (this.mode === 'eaten' || this.mode === 'house');
+    return this.grid.canGhostMove(nx, ny, allowDoor);
+  }
+  setTarget(t) { this.target = t; }
+  _onArrive() {
+    if (this.mode === 'eaten') {
+      // Reached spawn? become house, then chase
+      if (this.cx === this.spawn.x && this.cy === this.spawn.y) {
+        this.mode = 'chase';
+        this.speed = SPEED_GHOST;
+      }
+    }
+    if (this.mode === 'scared') {
+      this.scaredTimer -= 1 / SPEED_GHOST_SCARED;
+      if (this.scaredTimer <= 0) {
+        this.mode = 'chase';
+        this.speed = SPEED_GHOST;
+      }
+    }
+  }
+  _decide() {
+    if (this.mode === 'house' && !this.released) {
+      // Sit in house bobbing until released
+      this.dir = (this.dir === 'down') ? 'up' : 'down';
+      const d = DIRS[this.dir];
+      const ny = this.cy + d.y;
+      if (ny < 8 || ny > 10) this.dir = (this.dir === 'down') ? 'up' : 'down';
+      return;
+    }
+    if (this.mode === 'house' && this.released) {
+      // Try to leave through the door (col 9, row 8 is door)
+      // Path: move to (9, this.cy), then up
+      if (this.cx === 9) {
+        this.dir = 'up';
+        return;
+      }
+      this.dir = (this.cx < 9) ? 'right' : 'left';
+      return;
+    }
+    // Cell-based decision: examine valid neighbors, pick by mode
+    const valid = [];
+    const reverse = reverseDir(this.dir);
+    for (const k of DIR_NAMES) {
+      const d = DIRS[k];
+      let nx = this.cx + d.x, ny = this.cy + d.y;
+      if (nx < 0) nx = COLS - 1;
+      else if (nx >= COLS) nx = 0;
+      if (!this.canMoveTo(nx, ny)) continue;
+      if (k === reverse && !this.forcedReverse) continue;
+      valid.push({ k, nx, ny });
+    }
+    this.forcedReverse = false;
+    if (valid.length === 0) {
+      // dead-end, allow reverse
+      const d = DIRS[reverse];
+      let nx = this.cx + d.x, ny = this.cy + d.y;
+      if (nx < 0) nx = COLS - 1;
+      else if (nx >= COLS) nx = 0;
+      if (this.canMoveTo(nx, ny)) {
+        this.dir = reverse;
+      } else this.dir = 'none';
+      return;
+    }
+    if (this.mode === 'scared') {
+      // Random
+      const v = valid[Math.floor(Math.random() * valid.length)];
+      this.dir = v.k;
+      return;
+    }
+    // Compute target
+    const target = this._computeTarget();
+    let bestD = Infinity, bestK = valid[0].k;
+    for (const v of valid) {
+      const dx = v.nx - target.x, dy = v.ny - target.y;
+      const dd = dx*dx + dy*dy;
+      if (dd < bestD) { bestD = dd; bestK = v.k; }
+    }
+    this.dir = bestK;
+  }
+  _computeTarget() {
+    if (this.mode === 'eaten') return this.spawn;
+    if (this.mode === 'scatter') return this.scatterCorner;
+    if (!this.target) return { x: 9, y: 10 };
+    // Personality-specific
+    const pac = this.target;
+    if (this.personality === 'blinky') {
+      return { x: pac.cx, y: pac.cy };
+    }
+    if (this.personality === 'pinky') {
+      const fd = DIRS[pac.facing] || DIRS.right;
+      return { x: pac.cx + fd.x * 4, y: pac.cy + fd.y * 4 };
+    }
+    if (this.personality === 'inky') {
+      const fd = DIRS[pac.facing] || DIRS.right;
+      const px = pac.cx + fd.x * 2, py = pac.cy + fd.y * 2;
+      const blinky = this.target.game ? this.target.game.ghosts[0] : null;
+      if (blinky) {
+        return { x: 2 * px - blinky.cx, y: 2 * py - blinky.cy };
+      }
+      return { x: px, y: py };
+    }
+    return { x: pac.cx, y: pac.cy };
+  }
+}
+
+/* =========================================================================
+ * PacAI — planning agent for the player
+ *
+ *   At each cell entry, evaluates the four directions with a score function:
+ *
+ *     score(move) = -dist_to_nearest_food                 // greedy collection
+ *                   + pellet_bonus(dist, ghost_state)     // pre-emptive pellet seek
+ *                   + sum_g chase_bonus(g)  if scared     // hunt prey
+ *                   - sum_g danger_penalty(g)  otherwise  // avoid death
+ *                   + corridor_penalty                    // discourage dead-ends
+ *
+ *   All distances come from a single BFS from the *candidate* neighbor cell,
+ *   so what we score is the actual reachable game state, not just euclidean.
+ *
+ *   The agent obeys the no-reverse rule (won't U-turn unless cornered),
+ *   matching how a human plays.
+ * ========================================================================= */
+class PacAI {
+  constructor(game) { this.game = game; }
+  pickDirection() {
+    const pac = this.game.pacman;
+    if (pac.dead) return 'none';
+    const reverse = reverseDir(pac.dir);
+    // Enumerate valid neighbors
+    const cands = [];
+    for (const k of DIR_NAMES) {
+      const d = DIRS[k];
+      let nx = pac.cx + d.x, ny = pac.cy + d.y;
+      if (nx < 0) nx = COLS - 1;
+      else if (nx >= COLS) nx = 0;
+      if (!this.game.grid.canPacMove(nx, ny)) continue;
+      cands.push({ k, nx, ny, isReverse: k === reverse });
+    }
+    if (cands.length === 0) return 'none';
+    // Try non-reverse first
+    let best = -Infinity, bestK = null;
+    for (const c of cands) {
+      if (c.isReverse) continue;
+      const s = this._score(c.nx, c.ny);
+      if (s > best) { best = s; bestK = c.k; }
+    }
+    if (bestK !== null) return bestK;
+    // Forced reverse
+    return cands[0].k;
+  }
+  _score(x, y) {
+    const grid = this.game.grid;
+    const dist = grid.bfsDist(x, y);
+    let s = 0;
+
+    // Nearest food
+    let nearestFood = Infinity, nearestPellet = Infinity;
+    let foodCount = 0, pelletCount = 0;
+    for (let cy = 0; cy < ROWS; cy++) {
+      for (let cx = 0; cx < COLS; cx++) {
+        const c = grid.cells[cy][cx];
+        const d = dist[cy][cx];
+        if (d < 0) continue;
+        if (c.dot) {
+          foodCount++;
+          if (d < nearestFood) nearestFood = d;
+        }
+        if (c.pellet) {
+          pelletCount++;
+          if (d < nearestPellet) nearestPellet = d;
+        }
+      }
+    }
+    if (nearestFood !== Infinity) s -= nearestFood * 1.0;
+
+    // Pellet logic — chase pellets when ghosts active and we're being threatened
+    const anyDangerous = this.game.ghosts.some(g => g.mode === 'chase' || g.mode === 'scatter');
+    const anyScared = this.game.ghosts.some(g => g.mode === 'scared');
+    if (nearestPellet !== Infinity && anyDangerous && !anyScared) {
+      s += 25 / Math.max(1, nearestPellet);
+    }
+
+    // Ghost interactions
+    for (const g of this.game.ghosts) {
+      if (g.mode === 'eaten' || g.mode === 'house') continue;
+      const gx = g.cx, gy = g.cy;
+      let gd = (gx >= 0 && gx < COLS && gy >= 0 && gy < ROWS) ? dist[gy][gx] : -1;
+      if (gd < 0) gd = 999;
+      if (g.mode === 'scared') {
+        // chase scared ghost — bonus that decays with distance and scared time
+        const remaining = Math.max(0, g.scaredTimer);
+        if (remaining > 1) {
+          s += 200 / Math.max(1, gd);
+        }
+      } else {
+        // avoid normal ghost — sharp penalty if close, gentle far away
+        if (gd <= 1) s -= 1000;
+        else if (gd <= 3) s -= 200 / gd;
+        else if (gd <= 6) s -= 30 / gd;
+      }
+    }
+
+    // Tiny incentive for non-tunnel cells (avoid getting stuck in narrow tunnels with ghost approaching)
+    return s;
+  }
+  /** External-policy hook: game.policy(obs) → 'up'|'down'|'left'|'right' */
+  static buildObs(game) {
+    const pac = game.pacman;
+    return {
+      pacman: { x: pac.cx, y: pac.cy, dir: pac.dir, facing: pac.facing },
+      ghosts: game.ghosts.map(g => ({
+        x: g.cx, y: g.cy, mode: g.mode, scaredTimer: g.scaredTimer,
+        name: g.name,
+      })),
+      grid: game.grid.cells.map(row => row.map(c => ({
+        wall: c.wall, dot: c.dot, pellet: c.pellet, door: c.door,
+      }))),
+      score: game.score,
+      lives: game.lives,
+      level: game.level,
+    };
+  }
+}
+
+/* =========================================================================
+ * Game
+ * ========================================================================= */
+class Game {
+  constructor() {
+    this.canvas = document.getElementById('canvas');
+    this.ctx = this.canvas.getContext('2d');
+    this.W = CANVAS_W; this.H = CANVAS_H;
+    this.sfx = new Sfx();
+    this.music = new Music();
+    this.state = 'menu';
+    this.aiMode = false;
+    this.policy = null;
+    this.aiStats = { dotsEaten: 0, ghostsEaten: 0, deaths: 0, levels: 0 };
+    this.keys = {};
+    this.particles = [];
+    this.shockwaves = [];
+    this.floaters = [];
+    this.trails = [];   // pacman trail dots
+    this.shake = 0;
+    this.gridScroll = 0;
+    this.combo = 1;
+    this.comboTimer = 0;
+    this.scoreDisplay = 0;
+    this.flashAlpha = 0;
+    this.modeIndex = 0;
+    this.modeTime = 0;
+    this.tunnelGlow = 0;
+    this._initGame();
+    this._bindKeys();
+    this._bindUI();
+    this._loop();
+  }
+  _initGame() {
+    this.grid = new Grid();
+    this.pacman = new Pacman(this.grid, this.grid.pacStart.x, this.grid.pacStart.y);
+    const ghostColors = ['#ef4444', '#ec4899', '#22d3ee'];
+    const ghostNames  = ['BLINKY', 'PINKY', 'INKY'];
+    const ghostPersonalities = ['blinky', 'pinky', 'inky'];
+    const corners = [{x: COLS-2, y: 1}, {x: 1, y: 1}, {x: COLS-2, y: ROWS-2}];
+    this.ghosts = [];
+    for (let i = 0; i < 3; i++) {
+      const sp = this.grid.ghostSpawns[i];
+      const g = new Ghost(this.grid, sp.x, sp.y, ghostColors[i], ghostNames[i], ghostPersonalities[i]);
+      g.scatterCorner = corners[i];
+      g.target = this.pacman;
+      g.game = this;       // for inky personality lookup
+      this.pacman.game = this;
+      // Stagger release: blinky first, others delayed
+      g.releaseDelay = i * 1.2;
+      this.ghosts.push(g);
+    }
+    this.score = 0;
+    this.lives = 3;
+    this.level = 1;
+    this.paused = false;
+    this.modeIndex = 0;
+    this.modeTime = 0;
+    this.gameTime = 0;
+    this.ai = new PacAI(this);
+    this._refreshHUD();
+  }
+  _bindKeys() {
+    document.addEventListener('keydown', e => {
+      const k = e.key.toLowerCase();
+      this.keys[k] = true;
+      if (e.key === 'ArrowUp')    this.pacman.nextDir = 'up';
+      if (e.key === 'ArrowDown')  this.pacman.nextDir = 'down';
+      if (e.key === 'ArrowLeft')  this.pacman.nextDir = 'left';
+      if (e.key === 'ArrowRight') this.pacman.nextDir = 'right';
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown' ||
+          e.key === 'ArrowLeft' || e.key === 'ArrowRight' || k === ' ') e.preventDefault();
+      if (k === 'm') this._toggleMute();
+      if (k === 'p') this.paused = !this.paused;
+      if (k === 'y') this._toggleAI();
+    });
+    document.addEventListener('keyup', e => { this.keys[e.key.toLowerCase()] = false; });
+  }
+  _bindUI() {
+    document.getElementById('mute-btn').onclick = () => this._toggleMute();
+    document.getElementById('music-btn').onclick = () => this._toggleMusic();
+    document.getElementById('ai-btn').onclick = () => this._toggleAI();
+    document.getElementById('play-btn').onclick = () => this._startGame();
+    document.getElementById('restart-btn').onclick = () => this._restart();
+  }
+  _toggleMute() {
+    this.sfx.toggle();
+    document.getElementById('mute-btn').textContent = this.sfx.muted ? '🔇' : '🔊';
+  }
+  _toggleMusic() {
+    this.music.toggle();
+    document.getElementById('music-btn').style.color = this.music.muted ? 'var(--slate-d)' : '';
+  }
+  _toggleAI() {
+    this.aiMode = !this.aiMode;
+    const btn = document.getElementById('ai-btn');
+    btn.classList.toggle('active', this.aiMode);
+    this._setStage();
+  }
+  _startGame() {
+    document.getElementById('start-screen').classList.add('hidden');
+    this.state = 'playing';
+    this.sfx.start();
+    this.music.start();
+    this._setStage();
+    // Release first ghost immediately
+    if (this.ghosts[0]) this.ghosts[0].released = true;
+  }
+  _restart() {
+    document.getElementById('game-over').classList.add('hidden');
+    this.aiStats = { dotsEaten: 0, ghostsEaten: 0, deaths: 0, levels: 0 };
+    this._initGame();
+    this._startGame();
+  }
+  _setStage() {
+    const t = document.getElementById('stage-text');
+    const h = document.getElementById('hint-text');
+    if (this.aiMode) {
+      const s = this.aiStats;
+      t.textContent = '— AI ENGAGED —';
+      t.style.color = 'var(--yellow)';
+      h.textContent = `Dots ${s.dotsEaten} · Ghosts ${s.ghostsEaten} · Deaths ${s.deaths}`;
+    } else {
+      t.textContent = '— READY —';
+      t.style.color = 'var(--cyan)';
+      h.textContent = 'Arrow keys · M mute · P pause · Y for AI';
+    }
+  }
+  _refreshHUD() {
+    document.getElementById('score-val').textContent = Math.floor(this.scoreDisplay).toLocaleString();
+    document.getElementById('level-val').textContent = this.level;
+    document.getElementById('combo-val').textContent = '×' + this.combo;
+    document.getElementById('dots-val').textContent =
+      this.grid.dotCount + this.grid.pelletCount;
+    const lr = document.getElementById('lives-row');
+    lr.innerHTML = '';
+    for (let i = 0; i < 3; i++) {
+      const el = document.createElement('div');
+      el.className = 'life-icon' + (i < this.lives ? '' : ' spent');
+      lr.appendChild(el);
+    }
+  }
+
+  /* ----- core loop ----- */
+  _loop() {
+    let last = performance.now();
+    const tick = (now) => {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      if (!this.paused && this.state === 'playing') this._update(dt);
+      this._render();
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }
+  _update(dt) {
+    this.gameTime += dt;
+    // Mode switching for ghosts (chase/scatter pattern)
+    this.modeTime += dt;
+    const modeSchedule = [
+      { mode: 'scatter', dur: 7 },
+      { mode: 'chase',   dur: 20 },
+      { mode: 'scatter', dur: 7 },
+      { mode: 'chase',   dur: 20 },
+      { mode: 'scatter', dur: 5 },
+      { mode: 'chase',   dur: 1e9 },
+    ];
+    if (this.modeIndex < modeSchedule.length &&
+        this.modeTime > modeSchedule[this.modeIndex].dur) {
+      this.modeIndex++;
+      this.modeTime = 0;
+      // Force a reverse on mode change for active ghosts
+      for (const g of this.ghosts) {
+        if (g.mode === 'chase' || g.mode === 'scatter') g.forcedReverse = true;
+      }
+    }
+    const currentMode = (this.modeIndex < modeSchedule.length)
+      ? modeSchedule[this.modeIndex].mode
+      : 'chase';
+
+    // Release ghosts on schedule
+    for (const g of this.ghosts) {
+      if (!g.released && this.gameTime > g.releaseDelay) g.released = true;
+    }
+
+    // Promote ghosts from house to active mode if they've left the house
+    for (const g of this.ghosts) {
+      if (g.mode === 'house' && g.released && g.cy < 8) {
+        g.mode = currentMode;
+      }
+      if ((g.mode === 'chase' || g.mode === 'scatter') && currentMode !== g.mode) {
+        g.mode = currentMode;
+      }
+    }
+
+    // AI direction (or external policy)
+    if (this.aiMode && !this.pacman.dead && this.pacman.t >= 1) {
+      const fn = (typeof this.policy === 'function')
+        ? this.policy
+        : null;
+      let move;
+      if (fn) {
+        try { move = fn(PacAI.buildObs(this)); } catch(e) { console.error(e); }
+      } else {
+        move = this.ai.pickDirection();
+      }
+      if (move && DIRS[move]) this.pacman.nextDir = move;
+    }
+
+    // Movement
+    if (!this.pacman.dead) {
+      this.pacman.step(dt);
+      // mouth animation
+      if (this.pacman.dir !== 'none') {
+        this.pacman.mouth = Math.abs(Math.sin(this.gameTime * 14)) * 0.65;
+      } else {
+        this.pacman.mouth *= 0.92;
+      }
+      // Pacman trail
+      if (this.pacman.dir !== 'none' && Math.random() < 0.3) {
+        this.trails.push({ x: this.pacman.px, y: this.pacman.py, life: 0.4, color: 'rgba(253, 224, 71, 0.4)' });
+      }
+    } else {
+      this.pacman.deadT += dt;
+      if (this.pacman.deadT > 1.6) {
+        if (this.lives <= 0) this._gameOver();
+        else this._respawn();
+      }
+    }
+
+    // Ghost movement
+    for (const g of this.ghosts) g.step(dt);
+
+    // Eat dots/pellets when pacman arrives at cell
+    if (this.pacman.t === 1) {
+      const c = this.grid.cells[this.pacman.cy][this.pacman.cx];
+      if (c.dot) {
+        c.dot = false;
+        this.grid.dotCount--;
+        const pts = 10 * this.combo;
+        this.score += pts;
+        this.combo = Math.min(8, this.combo + 1);
+        this.comboTimer = 1.6;
+        this.aiStats.dotsEaten++;
+        this.sfx.dot();
+        this._spawnSparkle(this.pacman.px, this.pacman.py, 'rgba(165, 243, 252, 0.8)', 6);
+      }
+      if (c.pellet) {
+        c.pellet = false;
+        this.grid.pelletCount--;
+        this.score += 50 * this.combo;
+        this.combo = Math.min(8, this.combo + 1);
+        this.comboTimer = 1.6;
+        this.aiStats.dotsEaten++;
+        this.sfx.pellet();
+        this._spawnSparkle(this.pacman.px, this.pacman.py, 'rgba(253, 224, 71, 0.9)', 24, 2);
+        this.shockwaves.push({ x: this.pacman.px, y: this.pacman.py, r: 6, vr: 600, maxR: 200, life: 0.6, color: '#fde047' });
+        this.flashAlpha = 0.4;
+        // Scare ghosts
+        for (const g of this.ghosts) g.becomeScared();
+      }
+    }
+
+    // Ghost collisions
+    for (const g of this.ghosts) {
+      const dx = g.px - this.pacman.px;
+      const dy = g.py - this.pacman.py;
+      if (dx*dx + dy*dy < (CELL * 0.55) ** 2) {
+        if (g.mode === 'scared') {
+          g.becomeEaten();
+          const pts = 200 * Math.pow(2, this._eatenThisPellet());
+          this.score += pts;
+          this.aiStats.ghostsEaten++;
+          this.sfx.eatGhost();
+          this._spawnSparkle(g.px, g.py, '#3b82f6', 32, 2);
+          this.shockwaves.push({ x: g.px, y: g.py, r: 6, vr: 500, maxR: 140, life: 0.5, color: '#3b82f6' });
+          this._floater(g.px, g.py - 12, '+' + pts, '#3b82f6', 18);
+          this.shake = Math.max(this.shake, 12);
+        } else if (g.mode !== 'eaten' && !this.pacman.dead) {
+          this._die();
+        }
+      }
+    }
+
+    // Combo decay
+    this.comboTimer -= dt;
+    if (this.comboTimer <= 0) this.combo = 1;
+    if (this.pacman.dir === 'none') this.combo = 1;
+
+    // Score interpolation
+    this.scoreDisplay += (this.score - this.scoreDisplay) * Math.min(1, dt * 8);
+
+    // Particles
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      const p = this.particles[i];
+      p.life -= dt;
+      if (p.life <= 0) this.particles.splice(i, 1);
+      else { p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.96; p.vy *= 0.96; }
+    }
+    for (let i = this.shockwaves.length - 1; i >= 0; i--) {
+      const s = this.shockwaves[i];
+      s.life -= dt;
+      s.r += s.vr * dt;
+      if (s.life <= 0) this.shockwaves.splice(i, 1);
+    }
+    for (let i = this.floaters.length - 1; i >= 0; i--) {
+      const f = this.floaters[i];
+      f.y += f.vy * dt; f.life -= dt;
+      if (f.life <= 0) this.floaters.splice(i, 1);
+    }
+    for (let i = this.trails.length - 1; i >= 0; i--) {
+      const t = this.trails[i];
+      t.life -= dt;
+      if (t.life <= 0) this.trails.splice(i, 1);
+    }
+
+    if (this.shake > 0) this.shake = Math.max(0, this.shake - dt * 60);
+    if (this.flashAlpha > 0) this.flashAlpha = Math.max(0, this.flashAlpha - dt * 1.5);
+    this.gridScroll = (this.gridScroll + dt * 60) % 60;
+
+    this._refreshHUD();
+
+    // Level complete?
+    if (this.grid.dotCount === 0 && this.grid.pelletCount === 0) this._levelUp();
+  }
+  _eatenThisPellet() {
+    // Count how many ghosts are currently in eaten state — chains scoring
+    return this.ghosts.filter(g => g.mode === 'eaten').length - 1;
+  }
+  _die() {
+    this.pacman.dead = true;
+    this.pacman.deadT = 0;
+    this.pacman.dir = 'none';
+    this.lives--;
+    this.aiStats.deaths++;
+    this.sfx.death();
+    this.combo = 1;
+    this.shake = 18;
+    this._spawnSparkle(this.pacman.px, this.pacman.py, '#fbbf24', 30, 2);
+    this.shockwaves.push({ x: this.pacman.px, y: this.pacman.py, r: 6, vr: 400, maxR: 160, life: 0.7, color: '#fbbf24' });
+  }
+  _respawn() {
+    this.pacman.dead = false;
+    this.pacman.deadT = 0;
+    this.pacman.cx = this.grid.pacStart.x;
+    this.pacman.cy = this.grid.pacStart.y;
+    this.pacman.prevCx = this.pacman.cx;
+    this.pacman.prevCy = this.pacman.cy;
+    this.pacman.t = 1;
+    this.pacman.dir = 'none';
+    this.pacman.nextDir = 'none';
+    this.pacman.facing = 'right';
+    for (const g of this.ghosts) g.resetToSpawn();
+    this.modeIndex = 0;
+    this.modeTime = 0;
+    this.gameTime = 0;
+    if (this.ghosts[0]) this.ghosts[0].released = true;
+    this._setStage();
+  }
+  _levelUp() {
+    this.level++;
+    this.aiStats.levels++;
+    this.grid.reset();
+    this._waveToast(this.level);
+    this.sfx.levelUp();
+    // Speed up slightly (cap)
+    for (const g of this.ghosts) {
+      g.resetToSpawn();
+    }
+    this.pacman.cx = this.grid.pacStart.x;
+    this.pacman.cy = this.grid.pacStart.y;
+    this.pacman.prevCx = this.pacman.cx;
+    this.pacman.prevCy = this.pacman.cy;
+    this.pacman.t = 1;
+    this.pacman.dir = 'none';
+    this.pacman.nextDir = 'none';
+    this.gameTime = 0;
+    this.modeIndex = 0;
+    this.modeTime = 0;
+    if (this.ghosts[0]) this.ghosts[0].released = true;
+    this._refreshHUD();
+  }
+  _gameOver() {
+    this.state = 'gameover';
+    this.music.stop();
+    document.getElementById('final-score').textContent = this.score.toLocaleString();
+    document.getElementById('final-level').textContent = this.level;
+    document.getElementById('final-dots').textContent = this.aiStats.dotsEaten;
+    document.getElementById('game-over').classList.remove('hidden');
+  }
+  _waveToast(n) {
+    const el = document.getElementById('wave-toast');
+    document.getElementById('wave-main').textContent = n;
+    el.classList.remove('show'); void el.offsetWidth;
+    el.classList.add('show');
+    clearTimeout(this._wt);
+    this._wt = setTimeout(() => el.classList.remove('show'), 1400);
+  }
+  _spawnSparkle(x, y, color, n=8, sizeMul=1) {
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * Math.PI * 2;
+      const s = 60 + Math.random() * 200;
+      this.particles.push({
+        x, y,
+        vx: Math.cos(a) * s, vy: Math.sin(a) * s,
+        life: 0.3 + Math.random() * 0.4,
+        size: (1.2 + Math.random() * 2) * sizeMul,
+        color,
+      });
+    }
+  }
+  _floater(x, y, text, color='#fff', size=14) {
+    this.floaters.push({ x, y, text, color, size, vy: -50, life: 1.2 });
+  }
+
+  /* ============================================================
+   * RENDERING
+   * ============================================================ */
+  _render() {
+    const ctx = this.ctx;
+    ctx.save();
+    if (this.shake > 0) {
+      ctx.translate((Math.random() - 0.5) * this.shake, (Math.random() - 0.5) * this.shake);
+    }
+    // Background
+    ctx.fillStyle = '#020617';
+    ctx.fillRect(0, 0, this.W, this.H);
+    this._drawSynthwaveGrid();
+    // Trails
+    for (const t of this.trails) {
+      ctx.globalAlpha = t.life / 0.4 * 0.5;
+      ctx.fillStyle = t.color;
+      ctx.beginPath(); ctx.arc(t.x, t.y, 8, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    // Maze walls
+    this._drawWalls();
+    // Dots & pellets
+    this._drawDots();
+    // Ghosts (behind pacman if scared/eaten? We'll just draw all then pacman on top)
+    for (const g of this.ghosts) this._drawGhost(g);
+    // Pacman
+    this._drawPacman();
+    // Particles
+    this._drawParticles();
+    // Shockwaves
+    this._drawShockwaves();
+    // Floaters
+    this._drawFloaters();
+    // Flash
+    if (this.flashAlpha > 0) {
+      ctx.fillStyle = `rgba(253, 224, 71, ${this.flashAlpha * 0.4})`;
+      ctx.fillRect(0, 0, this.W, this.H);
+    }
+    // Vignette
+    const v = ctx.createRadialGradient(this.W/2, this.H/2, 200, this.W/2, this.H/2, 600);
+    v.addColorStop(0, 'rgba(0,0,0,0)');
+    v.addColorStop(1, 'rgba(0,0,0,0.55)');
+    ctx.fillStyle = v;
+    ctx.fillRect(0, 0, this.W, this.H);
+    ctx.restore();
+  }
+
+  _drawSynthwaveGrid() {
+    const ctx = this.ctx;
+    ctx.save();
+    // Floor grid below the maze (perspective lines)
+    const horizon = GRID_OY + GRID_H;
+    ctx.strokeStyle = 'rgba(34, 211, 238, 0.08)';
+    ctx.lineWidth = 1;
+    // Horizontal grid lines (perspective)
+    for (let i = 0; i < 12; i++) {
+      const t = i / 12;
+      const y = horizon + t * (this.H - horizon);
+      const a = (1 - t) * 0.18 + 0.02;
+      ctx.strokeStyle = `rgba(34, 211, 238, ${a})`;
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(this.W, y); ctx.stroke();
+    }
+    // Vertical perspective lines
+    for (let i = -10; i <= 10; i++) {
+      const x0 = this.W / 2 + i * 60;
+      const x1 = this.W / 2 + i * 280;
+      ctx.strokeStyle = 'rgba(236, 72, 153, 0.07)';
+      ctx.beginPath(); ctx.moveTo(x0, horizon); ctx.lineTo(x1, this.H); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  _drawWalls() {
+    const ctx = this.ctx;
+    ctx.save();
+    // Pass 1: glow halo
+    ctx.shadowColor = '#22d3ee';
+    ctx.shadowBlur = 10;
+    ctx.strokeStyle = 'rgba(34, 211, 238, 0.85)';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        if (!this.grid.cells[y][x].wall) continue;
+        const px = GRID_OX + x * CELL;
+        const py = GRID_OY + y * CELL;
+        // Top
+        if (!this.grid.isWall(x, y - 1)) {
+          ctx.beginPath();
+          ctx.moveTo(px + 2, py + 2);
+          ctx.lineTo(px + CELL - 2, py + 2);
+          ctx.stroke();
+        }
+        // Bottom
+        if (!this.grid.isWall(x, y + 1)) {
+          ctx.beginPath();
+          ctx.moveTo(px + 2, py + CELL - 2);
+          ctx.lineTo(px + CELL - 2, py + CELL - 2);
+          ctx.stroke();
+        }
+        // Left
+        if (!this.grid.isWall(x - 1, y)) {
+          ctx.beginPath();
+          ctx.moveTo(px + 2, py + 2);
+          ctx.lineTo(px + 2, py + CELL - 2);
+          ctx.stroke();
+        }
+        // Right
+        if (!this.grid.isWall(x + 1, y)) {
+          ctx.beginPath();
+          ctx.moveTo(px + CELL - 2, py + 2);
+          ctx.lineTo(px + CELL - 2, py + CELL - 2);
+          ctx.stroke();
+        }
+      }
+    }
+    // Inner darker line for depth
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = 'rgba(8, 145, 178, 0.5)';
+    ctx.lineWidth = 1;
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        if (!this.grid.cells[y][x].wall) continue;
+        const px = GRID_OX + x * CELL;
+        const py = GRID_OY + y * CELL;
+        if (!this.grid.isWall(x, y - 1)) {
+          ctx.beginPath(); ctx.moveTo(px + 4, py + 5); ctx.lineTo(px + CELL - 4, py + 5); ctx.stroke();
+        }
+        if (!this.grid.isWall(x, y + 1)) {
+          ctx.beginPath(); ctx.moveTo(px + 4, py + CELL - 5); ctx.lineTo(px + CELL - 4, py + CELL - 5); ctx.stroke();
+        }
+        if (!this.grid.isWall(x - 1, y)) {
+          ctx.beginPath(); ctx.moveTo(px + 5, py + 4); ctx.lineTo(px + 5, py + CELL - 4); ctx.stroke();
+        }
+        if (!this.grid.isWall(x + 1, y)) {
+          ctx.beginPath(); ctx.moveTo(px + CELL - 5, py + 4); ctx.lineTo(px + CELL - 5, py + CELL - 4); ctx.stroke();
+        }
+      }
+    }
+    // Door (ghost house)
+    ctx.shadowColor = '#ec4899'; ctx.shadowBlur = 8;
+    ctx.strokeStyle = '#ec4899';
+    ctx.lineWidth = 2;
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        if (!this.grid.cells[y][x].door) continue;
+        const px = GRID_OX + x * CELL;
+        const py = GRID_OY + y * CELL;
+        ctx.beginPath();
+        ctx.moveTo(px + 4, py + CELL/2);
+        ctx.lineTo(px + CELL - 4, py + CELL/2);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  _drawDots() {
+    const ctx = this.ctx;
+    ctx.save();
+    const tt = this.gameTime;
+    for (let y = 0; y < ROWS; y++) {
+      for (let x = 0; x < COLS; x++) {
+        const c = this.grid.cells[y][x];
+        const px = GRID_OX + x * CELL + CELL/2;
+        const py = GRID_OY + y * CELL + CELL/2;
+        if (c.dot) {
+          ctx.shadowColor = '#a5f3fc'; ctx.shadowBlur = 6;
+          ctx.fillStyle = '#a5f3fc';
+          ctx.beginPath(); ctx.arc(px, py, 2.6, 0, Math.PI * 2); ctx.fill();
+        } else if (c.pellet) {
+          const pulse = 1 + Math.sin(tt * 5 + x + y) * 0.3;
+          ctx.shadowColor = '#fde047'; ctx.shadowBlur = 14;
+          ctx.fillStyle = '#fde047';
+          ctx.beginPath(); ctx.arc(px, py, 6.5 * pulse, 0, Math.PI * 2); ctx.fill();
+          ctx.shadowBlur = 4;
+          ctx.fillStyle = '#fff';
+          ctx.beginPath(); ctx.arc(px - 1.5, py - 1.5, 2 * pulse, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+    }
+    ctx.restore();
+  }
+
+  _drawPacman() {
+    const ctx = this.ctx;
+    const p = this.pacman;
+    if (p.dead) {
+      // Death animation: shrinking arc
+      const t = Math.min(1, p.deadT / 1.6);
+      const r = CELL * 0.45 * (1 - t);
+      const open = 0.05 + t * Math.PI * 2;
+      ctx.save();
+      ctx.translate(p.px, p.py);
+      ctx.shadowColor = '#fbbf24'; ctx.shadowBlur = 18 * (1 - t);
+      ctx.fillStyle = '#fbbf24';
+      ctx.beginPath();
+      ctx.arc(0, 0, Math.max(0.1, r), open, Math.PI * 2 - open);
+      ctx.lineTo(0, 0);
+      ctx.fill();
+      ctx.restore();
+      return;
+    }
+    ctx.save();
+    ctx.translate(p.px, p.py);
+    const dirAngle = { right: 0, down: Math.PI/2, left: Math.PI, up: -Math.PI/2, none: 0 }[p.facing] || 0;
+    ctx.rotate(dirAngle);
+    const r = CELL * 0.45;
+    const m = p.mouth * Math.PI * 0.32;
+    // Outer glow
+    ctx.shadowColor = '#fde047'; ctx.shadowBlur = 18;
+    const grad = ctx.createRadialGradient(-r*0.2, -r*0.2, 0, 0, 0, r);
+    grad.addColorStop(0, '#fef3c7');
+    grad.addColorStop(0.4, '#fbbf24');
+    grad.addColorStop(1, '#d97706');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(0, 0, r, m, Math.PI * 2 - m);
+    ctx.lineTo(0, 0);
+    ctx.fill();
+    // Specular
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = 'rgba(255, 250, 230, 0.6)';
+    ctx.beginPath();
+    ctx.arc(-r*0.3, -r*0.35, r*0.18, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  _drawGhost(g) {
+    const ctx = this.ctx;
+    const flashing = (g.mode === 'scared' && g.scaredTimer < SCARED_FLASH_AT
+                      && Math.floor(g.scaredTimer * 6) % 2 === 0);
+    let body = g.color;
+    let eyes = '#fff';
+    let pupils = '#1e293b';
+    if (g.mode === 'scared') {
+      body = flashing ? '#f8fafc' : '#3b82f6';
+      eyes = '#fde047';
+      pupils = '#1e293b';
+    }
+    if (g.mode === 'eaten') {
+      body = null; // only eyes
+    }
+    const r = CELL * 0.42;
+    const x = g.px, y = g.py;
+    ctx.save();
+
+    // Body (skip if eaten)
+    if (body) {
+      ctx.shadowColor = body; ctx.shadowBlur = 14;
+      ctx.fillStyle = body;
+      // Head + body with wavy bottom
+      const wavePhase = this.gameTime * 8 + g.cx + g.cy;
+      ctx.beginPath();
+      ctx.arc(x, y, r, Math.PI, 0);
+      // Right side down
+      ctx.lineTo(x + r, y + r);
+      // Wavy bottom (4 humps)
+      for (let i = 0; i < 4; i++) {
+        const t = i / 4;
+        const hx = x + r - (r * 2) * (t + 0.125);
+        const hy = y + r - Math.sin(wavePhase + i * 1.6) * 3;
+        ctx.lineTo(hx, hy);
+      }
+      ctx.lineTo(x - r, y + r);
+      ctx.closePath();
+      ctx.fill();
+      // Inner gradient highlight
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
+      ctx.beginPath();
+      ctx.arc(x - r*0.3, y - r*0.4, r*0.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Eyes (always, even when eaten)
+    const dirVec = DIRS[g.dir] || DIRS.none;
+    const eyeOffsetX = dirVec.x * r * 0.14;
+    const eyeOffsetY = dirVec.y * r * 0.14;
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = eyes;
+    if (g.mode === 'scared') {
+      // Single mouth + eyes for scared
+      ctx.beginPath();
+      ctx.arc(x - r*0.32, y - r*0.05, r*0.18, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x + r*0.32, y - r*0.05, r*0.18, 0, Math.PI * 2); ctx.fill();
+      // mouth
+      ctx.strokeStyle = eyes;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      const mY = y + r*0.32;
+      for (let i = 0; i <= 6; i++) {
+        const mx = x - r*0.5 + r * (i/6);
+        const my = mY + ((i % 2 === 0) ? -2 : 2);
+        if (i === 0) ctx.moveTo(mx, my);
+        else ctx.lineTo(mx, my);
+      }
+      ctx.stroke();
+    } else {
+      // Normal eyes with pupils
+      ctx.beginPath();
+      ctx.ellipse(x - r*0.32, y - r*0.1, r*0.22, r*0.28, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(x + r*0.32, y - r*0.1, r*0.22, r*0.28, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = pupils;
+      ctx.beginPath();
+      ctx.arc(x - r*0.32 + eyeOffsetX, y - r*0.1 + eyeOffsetY, r*0.13, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath();
+      ctx.arc(x + r*0.32 + eyeOffsetX, y - r*0.1 + eyeOffsetY, r*0.13, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  _drawParticles() {
+    const ctx = this.ctx;
+    ctx.save();
+    for (const p of this.particles) {
+      ctx.globalAlpha = Math.min(1, p.life * 2);
+      ctx.shadowColor = p.color; ctx.shadowBlur = 8;
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+  }
+  _drawShockwaves() {
+    const ctx = this.ctx;
+    ctx.save();
+    for (const s of this.shockwaves) {
+      const a = s.life / 0.6;
+      ctx.globalAlpha = a;
+      ctx.strokeStyle = s.color;
+      ctx.lineWidth = 3;
+      ctx.shadowColor = s.color; ctx.shadowBlur = 15;
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  _drawFloaters() {
+    const ctx = this.ctx;
+    ctx.save();
+    ctx.textAlign = 'center';
+    for (const f of this.floaters) {
+      ctx.globalAlpha = Math.min(1, f.life * 1.5);
+      ctx.shadowColor = f.color; ctx.shadowBlur = 8;
+      ctx.fillStyle = f.color;
+      ctx.font = `900 ${f.size}px "Courier New", monospace`;
+      ctx.fillText(f.text, f.x, f.y);
+    }
+    ctx.restore();
+  }
+}
+
+window.game = new Game();
+</script>
+</body>
+</html>
