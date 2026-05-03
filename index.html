@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Howard H. Cho - Robotics & Reinforcement Learning Engineer</title>
+<meta name="description" content="Howard H. Cho - Robotics and reinforcement learning engineer. Boston Dynamics Spot, drones, Jetson AGX Thor, DGX Spark, Unitree Go1." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0a0a08;
+    --bg-soft: #131311;
+    --bg-card: #16160f;
+    --fg: #ebe4d2;
+    --fg-dim: #8a857a;
+    --fg-faint: #4a4a47;
+    --accent: #ff5c1f;
+    --accent-soft: #ff8c5a;
+    --accent-glow: rgba(255, 92, 31, 0.18);
+    --line: #2a2a26;
+    --grid: rgba(235, 228, 210, 0.035);
+    --serif: 'Instrument Serif', serif;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter Tight', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.55;
+    font-weight: 400;
+    overflow-x: hidden;
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 80px 80px;
+  }
+
+  ::selection { background: var(--accent); color: var(--bg); }
+
+  a { color: inherit; text-decoration: none; }
+
+  img { max-width: 100%; display: block; }
+
+  /* ---------- NAV ---------- */
+  nav.topnav {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 100;
+    backdrop-filter: blur(12px);
+    background: rgba(10, 10, 8, 0.7);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-inner {
+    max-width: 1400px; margin: 0 auto;
+    padding: 18px 40px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.05em;
+  }
+  .nav-brand { color: var(--fg); font-weight: 700; }
+  .nav-brand .dot { color: var(--accent); }
+  .nav-links { display: flex; gap: 28px; }
+  .nav-links a {
+    color: var(--fg-dim);
+    transition: color 0.2s ease;
+    text-transform: uppercase;
+  }
+  .nav-links a:hover { color: var(--accent); }
+  .nav-status {
+    color: var(--fg-dim);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .pulse {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #4ade80;
+    box-shadow: 0 0 12px #4ade80;
+    animation: pulse 1.8s infinite ease-in-out;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* ---------- LAYOUT ---------- */
+  .container {
+    max-width: 1400px; margin: 0 auto;
+    padding: 0 40px;
+  }
+  section {
+    padding: 120px 0;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+  }
+  .section-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .section-label::before {
+    content: ''; width: 28px; height: 1px; background: var(--accent);
+  }
+  .section-title {
+    font-family: var(--serif);
+    font-size: clamp(40px, 6vw, 72px);
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 60px;
+    max-width: 900px;
+  }
+  .section-title em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  /* ---------- HERO ---------- */
+  .hero {
+    min-height: 100vh;
+    padding: 180px 0 80px;
+    border-bottom: 1px solid var(--line);
+    display: flex; align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 50%; right: -10%;
+    width: 700px; height: 700px;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 60%);
+    transform: translateY(-50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .hero-content { position: relative; z-index: 1; width: 100%; }
+  .hero-meta {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--fg-dim);
+    margin-bottom: 32px;
+    display: flex; gap: 32px; flex-wrap: wrap;
+  }
+  .hero-meta span { display: flex; gap: 8px; }
+  .hero-meta b { color: var(--accent); font-weight: 500; }
+  .hero h1 {
+    font-family: var(--serif);
+    font-size: clamp(64px, 12vw, 180px);
+    font-weight: 400;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    margin-bottom: 28px;
+    animation: fadeUp 1s ease forwards;
+  }
+  .hero h1 .ital { font-style: italic; color: var(--accent); }
+  .hero-tagline {
+    font-size: clamp(18px, 1.6vw, 22px);
+    color: var(--fg-dim);
+    max-width: 640px;
+    line-height: 1.6;
+    margin-bottom: 48px;
+    animation: fadeUp 1s 0.2s ease both;
+  }
+  .hero-tagline strong { color: var(--fg); font-weight: 500; }
+  .hero-cta {
+    display: flex; gap: 20px; flex-wrap: wrap;
+    animation: fadeUp 1s 0.4s ease both;
+  }
+  .btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 14px 28px;
+    border: 1px solid var(--line);
+    color: var(--fg);
+    transition: all 0.25s ease;
+    display: inline-flex; align-items: center; gap: 10px;
+  }
+  .btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--accent-glow);
+  }
+  .btn.primary {
+    background: var(--accent);
+    color: var(--bg);
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  .btn.primary:hover {
+    background: transparent;
+    color: var(--accent);
+  }
+  .btn .arrow { transition: transform 0.25s ease; }
+  .btn:hover .arrow { transform: translateX(4px); }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---------- ABOUT ---------- */
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 80px;
+    align-items: start;
+  }
+  .portrait-frame {
+    position: relative;
+    aspect-ratio: 3/4;
+    border: 1px solid var(--line);
+    overflow: hidden;
+    background: var(--bg-soft);
+  }
+  .portrait-frame::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, transparent 60%, var(--accent-glow));
+    pointer-events: none;
+    z-index: 2;
+  }
+  .portrait-frame img { width: 100%; height: 100%; object-fit: cover; }
+  .portrait-meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--fg-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 12px;
+    display: flex; justify-content: space-between;
+  }
+  .placeholder {
+    width: 100%; height: 100%;
+    background:
+      repeating-linear-gradient(45deg, var(--bg-soft) 0 12px, var(--bg-card) 12px 24px);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: var(--fg-dim);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-align: center;
+    padding: 20px;
+  }
+  .placeholder span { color: var(--accent); margin-bottom: 6px; }
+
+  .about-text p {
+    font-size: 18px;
+    color: var(--fg);
+    margin-bottom: 22px;
+    max-width: 640px;
+  }
+  .about-text p.lead {
+    font-family: var(--serif);
+    font-size: 28px;
+    line-height: 1.3;
+    color: var(--fg);
+    margin-bottom: 32px;
+  }
+  .about-text p.lead em { font-style: italic; color: var(--accent); }
+  .about-text strong { color: var(--accent); font-weight: 500; }
+
+  /* ---------- SKILLS ---------- */
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+  .skill-block {
+    background: var(--bg);
+    padding: 36px 32px;
+    transition: background 0.25s ease;
+  }
+  .skill-block:hover { background: var(--bg-soft); }
+  .skill-block h3 {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 18px;
+    display: flex; gap: 10px;
+  }
+  .skill-block h3::before {
+    content: counter(skill, decimal-leading-zero);
+    counter-increment: skill;
+    color: var(--fg-faint);
+  }
+  .skills-grid { counter-reset: skill; }
+  .skill-block ul { list-style: none; }
+  .skill-block li {
+    font-size: 15px;
+    color: var(--fg);
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--line);
+  }
+  .skill-block li:last-child { border: none; }
+
+  /* ---------- HARDWARE ---------- */
+  .hardware-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .hw-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    padding: 0;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .hw-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-4px);
+  }
+  .hw-img {
+    aspect-ratio: 16/10;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-soft);
+  }
+  .hw-img .placeholder { font-size: 9px; }
+  .hw-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+  .hw-card:hover .hw-img img { transform: scale(1.05); }
+  .hw-body { padding: 28px 28px 32px; }
+  .hw-tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .hw-card h3 {
+    font-family: var(--serif);
+    font-size: 30px;
+    font-weight: 400;
+    line-height: 1.1;
+    margin-bottom: 14px;
+  }
+  .hw-card p {
+    font-size: 14px;
+    color: var(--fg-dim);
+    margin-bottom: 18px;
+  }
+  .hw-specs {
+    list-style: none;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--fg);
+  }
+  .hw-specs li {
+    display: flex; justify-content: space-between;
+    padding: 6px 0;
+    border-top: 1px dashed var(--line);
+  }
+  .hw-specs li span:first-child { color: var(--fg-dim); }
+  .hw-specs li span:last-child { color: var(--fg); }
+
+  /* ---------- FIELD EXPERIENCE ---------- */
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 24px;
+  }
+  .field-card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .field-img {
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-soft);
+  }
+  .field-img img { width: 100%; height: 100%; object-fit: cover; }
+  .field-body { padding: 36px 36px 40px; flex: 1; }
+  .field-card .hw-tag { margin-bottom: 14px; }
+  .field-card h3 {
+    font-family: var(--serif);
+    font-size: 40px;
+    font-weight: 400;
+    line-height: 1.05;
+    margin-bottom: 16px;
+  }
+  .field-card h3 em { font-style: italic; color: var(--accent); }
+  .field-card p {
+    font-size: 15px;
+    color: var(--fg-dim);
+    margin-bottom: 14px;
+    line-height: 1.65;
+  }
+  .field-card .meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--fg-dim);
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    display: flex; gap: 24px; flex-wrap: wrap;
+  }
+  .field-card .meta b { color: var(--accent); font-weight: 500; }
+
+  /* ---------- GAME ---------- */
+  .game-section { background: var(--bg-soft); }
+  .game-intro {
+    display: flex; justify-content: space-between;
+    align-items: end;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .game-intro p {
+    color: var(--fg-dim);
+    max-width: 480px;
+    font-size: 15px;
+  }
+  .game-frame {
+    border: 1px solid var(--line);
+    background: #000;
+    position: relative;
+    overflow: hidden;
+  }
+  .game-bar {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--line);
+    padding: 12px 20px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+  }
+  .game-bar .dots { display: flex; gap: 6px; }
+  .game-bar .dots span {
+    width: 11px; height: 11px; border-radius: 50%;
+    background: var(--fg-faint);
+  }
+  .game-bar .dots span:nth-child(1) { background: #ff5f56; }
+  .game-bar .dots span:nth-child(2) { background: #ffbd2e; }
+  .game-bar .dots span:nth-child(3) { background: #27c93f; }
+  .game-bar .title { color: var(--accent); text-transform: uppercase; }
+  .game-bar .status { color: var(--fg-dim); }
+  .game-iframe {
+    width: 100%;
+    height: 640px;
+    border: none;
+    display: block;
+    background: #000;
+  }
+  .game-fallback {
+    display: none;
+    padding: 80px 40px;
+    text-align: center;
+    color: var(--fg-dim);
+    font-family: var(--mono);
+    font-size: 13px;
+    background: #000;
+  }
+
+  /* ---------- PROJECTS ---------- */
+  .projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+  }
+  .project-card {
+    background: var(--bg);
+    padding: 32px 30px;
+    transition: background 0.25s ease;
+    display: flex; flex-direction: column;
+    position: relative;
+  }
+  .project-card:hover { background: var(--bg-soft); }
+  .project-card .tag {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .project-card h3 {
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 400;
+    line-height: 1.15;
+    margin-bottom: 12px;
+  }
+  .project-card p {
+    font-size: 14px;
+    color: var(--fg-dim);
+    margin-bottom: 22px;
+    flex: 1;
+  }
+  .project-card .stack {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--fg-dim);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .project-card .link {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    display: inline-flex; gap: 8px; align-items: center;
+  }
+  .project-card .link::after {
+    content: '↗';
+    transition: transform 0.25s ease;
+  }
+  .project-card:hover .link::after { transform: translate(2px, -2px); }
+
+  /* ---------- COURSEWORK ---------- */
+  .course-list { border-top: 1px solid var(--line); }
+  .course-row {
+    display: grid;
+    grid-template-columns: 80px 1fr 200px 180px;
+    gap: 30px;
+    align-items: center;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--line);
+    transition: background 0.25s ease;
+    padding-left: 16px; padding-right: 16px;
+  }
+  .course-row:hover { background: var(--bg-soft); }
+  .course-row .num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--fg-faint);
+  }
+  .course-row .name {
+    font-family: var(--serif);
+    font-size: 24px;
+    line-height: 1.2;
+  }
+  .course-row .focus {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--fg-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .course-row .where {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    text-align: right;
+  }
+
+  /* ---------- FOOTER ---------- */
+  footer {
+    padding: 100px 0 60px;
+    border-top: 1px solid var(--line);
+    background: var(--bg);
+  }
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr;
+    gap: 60px;
+    margin-bottom: 80px;
+  }
+  .footer-grid h4 {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .footer-grid .big {
+    font-family: var(--serif);
+    font-size: clamp(36px, 4vw, 56px);
+    line-height: 1.05;
+    font-weight: 400;
+    margin-bottom: 24px;
+  }
+  .footer-grid .big em { font-style: italic; color: var(--accent); }
+  .footer-links { display: flex; flex-direction: column; gap: 10px; }
+  .footer-links a {
+    color: var(--fg);
+    font-size: 15px;
+    transition: color 0.2s ease;
+    display: inline-flex; gap: 8px;
+  }
+  .footer-links a:hover { color: var(--accent); }
+  .footer-links .ext::after { content: ' ↗'; color: var(--fg-dim); }
+  .footer-bottom {
+    display: flex; justify-content: space-between;
+    padding-top: 40px;
+    border-top: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--fg-dim);
+    flex-wrap: wrap; gap: 20px;
+  }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 900px) {
+    .container { padding: 0 24px; }
+    .nav-inner { padding: 14px 24px; }
+    .nav-links { display: none; }
+    section { padding: 80px 0; }
+    .about-grid { grid-template-columns: 1fr; gap: 40px; }
+    .hardware-grid { grid-template-columns: 1fr; }
+    .field-grid { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr; gap: 40px; }
+    .course-row {
+      grid-template-columns: 50px 1fr;
+      grid-template-areas:
+        'num name'
+        '.   focus'
+        '.   where';
+      gap: 8px;
+      padding: 20px 12px;
+    }
+    .course-row .num { grid-area: num; }
+    .course-row .name { grid-area: name; font-size: 20px; }
+    .course-row .focus { grid-area: focus; }
+    .course-row .where { grid-area: where; text-align: left; }
+    .game-iframe { height: 480px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<nav class="topnav">
+  <div class="nav-inner">
+    <div class="nav-brand">HOWARD<span class="dot">.</span>CHO</div>
+    <div class="nav-links">
+      <a href="#about">About</a>
+      <a href="#skills">Skills</a>
+      <a href="#hardware">Hardware</a>
+      <a href="#field">Field</a>
+      <a href="#game">Game</a>
+      <a href="#projects">Projects</a>
+      <a href="#contact">Contact</a>
+    </div>
+    <div class="nav-status">
+      <span class="pulse"></span>
+      <span>SYSTEM ONLINE</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header class="hero">
+  <div class="container hero-content">
+    <div class="hero-meta">
+      <span><b>ID//</b> R0B0T4RL</span>
+      <span><b>ROLE//</b> Robotics &amp; RL Engineer</span>
+      <span><b>BASE//</b> Maryland, USA</span>
+      <span><b>YEAR//</b> 2026</span>
+    </div>
+    <h1>
+      Howard <span class="ital">H.</span><br>
+      Cho<span class="ital">.</span>
+    </h1>
+    <p class="hero-tagline">
+      I teach machines how to move. <strong>Reinforcement learning</strong> for legged
+      robots, manipulators, and aerial systems - bridging the gap between Isaac Lab
+      simulations and real hardware in the field.
+    </p>
+    <div class="hero-cta">
+      <a href="#projects" class="btn primary">View Work <span class="arrow">→</span></a>
+      <a href="https://github.com/bmaxdk" target="_blank" rel="noopener" class="btn">GitHub <span class="arrow">↗</span></a>
+      <a href="https://www.linkedin.com/in/howard-h-cho/" target="_blank" rel="noopener" class="btn">LinkedIn <span class="arrow">↗</span></a>
+    </div>
+  </div>
+</header>
+
+<!-- ============ ABOUT ============ -->
+<section id="about">
+  <div class="container">
+    <div class="section-label">01 / About</div>
+    <div class="about-grid">
+      <div>
+        <div class="portrait-frame">
+          <img src="images/profile.jpg" alt="Howard H. Cho" onerror="this.outerHTML='<div class=\'placeholder\'><span>IMG//</span>images/profile.jpg</div>'">
+        </div>
+        <div class="portrait-meta">
+          <span>FILE: profile.jpg</span>
+          <span>STATUS: ACTIVE</span>
+        </div>
+      </div>
+      <div class="about-text">
+        <p class="lead">
+          A robotics and reinforcement learning engineer working at the intersection of
+          <em>simulation, control, and real hardware</em>.
+        </p>
+        <p>
+          My focus is closing the sim-to-real gap. I design RL environments in
+          <strong>Isaac Lab</strong>, train policies with PPO/GRPO, and deploy them onto
+          quadrupeds, manipulators, and aerial platforms - the kind of work where the
+          training curve is half the story and the other half lives on a robot.
+        </p>
+        <p>
+          Hands-on with the full stack: NVIDIA Jetson edge compute, ROS&nbsp;2,
+          PhysX-based simulation, custom reward shaping, and field-operations tooling
+          like TAK/TAKX integration. I write the training code, build the rigs, and
+          drive the robots when it's time to test.
+        </p>
+        <p>
+          Outside of work, I build small games and tools - because if you can't make
+          something fun, you probably can't make something useful either.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SKILLS ============ -->
+<section id="skills">
+  <div class="container">
+    <div class="section-label">02 / Stack</div>
+    <h2 class="section-title">Tools I reach for <em>every day</em>.</h2>
+    <div class="skills-grid">
+      <div class="skill-block">
+        <h3>Reinforcement Learning</h3>
+        <ul>
+          <li>Isaac Lab / Isaac Sim</li>
+          <li>RSL-RL, PPO, GRPO</li>
+          <li>NeMo Gym</li>
+          <li>OpenAI Gym, Gymnasium</li>
+          <li>Reward shaping &amp; curriculum learning</li>
+        </ul>
+      </div>
+      <div class="skill-block">
+        <h3>Machine Learning</h3>
+        <ul>
+          <li>PyTorch, TRL, PEFT</li>
+          <li>HuggingFace Transformers</li>
+          <li>vLLM inference</li>
+          <li>CUDA / Triton</li>
+          <li>LLM agent training</li>
+        </ul>
+      </div>
+      <div class="skill-block">
+        <h3>Robotics</h3>
+        <ul>
+          <li>Boston Dynamics Spot SDK</li>
+          <li>Unitree Go1 control</li>
+          <li>ROS 2 (Humble) / Zenoh</li>
+          <li>Forward kinematics &amp; Jacobians</li>
+          <li>Whole-body control</li>
+        </ul>
+      </div>
+      <div class="skill-block">
+        <h3>Edge &amp; Hardware</h3>
+        <ul>
+          <li>NVIDIA Jetson AGX Thor / Orin</li>
+          <li>NVIDIA DGX Spark</li>
+          <li>Ubuntu 22.04 / 24.04 (ARM64)</li>
+          <li>Docker, NVIDIA runtime</li>
+          <li>CUDA 13, sm_110a / Blackwell</li>
+        </ul>
+      </div>
+      <div class="skill-block">
+        <h3>Simulation &amp; Physics</h3>
+        <ul>
+          <li>NVIDIA PhysX</li>
+          <li>USD scene authoring</li>
+          <li>Lagrangian / Coriolis dynamics</li>
+          <li>Ballistic &amp; aerodynamic models</li>
+          <li>Domain randomization</li>
+        </ul>
+      </div>
+      <div class="skill-block">
+        <h3>Field &amp; Ops</h3>
+        <ul>
+          <li>TAK / TAKX integration</li>
+          <li>OpenCV, image pipelines</li>
+          <li>Real-time TCP comms</li>
+          <li>Sensor fusion</li>
+          <li>UAV / drone operations</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HARDWARE ============ -->
+<section id="hardware">
+  <div class="container">
+    <div class="section-label">03 / Hardware</div>
+    <h2 class="section-title">The <em>rigs</em> I build on.</h2>
+    <div class="hardware-grid">
+
+      <div class="hw-card">
+        <div class="hw-img">
+          <img src="images/thor.jpg" alt="Jetson AGX Thor" onerror="this.outerHTML='<div class=\'placeholder\'><span>IMG//</span>images/thor.jpg</div>'">
+        </div>
+        <div class="hw-body">
+          <div class="hw-tag">Edge Compute</div>
+          <h3>Jetson AGX Thor</h3>
+          <p>
+            128&nbsp;GB unified memory developer kit running native Ubuntu 24.04 ARM64.
+            Used for on-device LLM agent training with NeMo Gym + GRPO and high-throughput
+            inference experiments on Blackwell-class silicon.
+          </p>
+          <ul class="hw-specs">
+            <li><span>Memory</span><span>128&nbsp;GB unified</span></li>
+            <li><span>OS</span><span>Ubuntu 24.04 ARM64</span></li>
+            <li><span>CUDA</span><span>13.0 / sm_110a</span></li>
+            <li><span>Stack</span><span>NeMo Gym, vLLM, PEFT</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="hw-card">
+        <div class="hw-img">
+          <img src="images/dgx-spark.jpg" alt="NVIDIA DGX Spark" onerror="this.outerHTML='<div class=\'placeholder\'><span>IMG//</span>images/dgx-spark.jpg</div>'">
+        </div>
+        <div class="hw-body">
+          <div class="hw-tag">Workstation</div>
+          <h3>DGX Spark</h3>
+          <p>
+            NVIDIA's desktop AI workstation - the local sandbox for fine-tuning and
+            distillation runs that are too heavy for the edge but don't need a full
+            datacenter. Pairs cleanly with the Thor for asymmetric workflows.
+          </p>
+          <ul class="hw-specs">
+            <li><span>Class</span><span>Personal AI Workstation</span></li>
+            <li><span>Use</span><span>Training &amp; fine-tuning</span></li>
+            <li><span>Pipeline</span><span>HuggingFace, TRL</span></li>
+            <li><span>Pairs with</span><span>Thor / Orin</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="hw-card">
+        <div class="hw-img">
+          <img src="images/agx-orin-go1.jpg" alt="AGX Orin mounted on Unitree Go1" onerror="this.outerHTML='<div class=\'placeholder\'><span>IMG//</span>images/agx-orin-go1.jpg</div>'">
+        </div>
+        <div class="hw-body">
+          <div class="hw-tag">Field Robot</div>
+          <h3>AGX Orin X Unitree Go1</h3>
+          <p>
+            A Jetson AGX Orin mounted directly on a Unitree Go1 quadruped - onboard
+            perception, ROS&nbsp;2 nodes, and policy inference running at the edge with
+            no cloud dependency. The whole platform walks where it's told.
+          </p>
+          <ul class="hw-specs">
+            <li><span>Compute</span><span>Jetson AGX Orin</span></li>
+            <li><span>Robot</span><span>Unitree Go1</span></li>
+            <li><span>Middleware</span><span>ROS 2 Humble + Zenoh</span></li>
+            <li><span>Mode</span><span>Onboard / untethered</span></li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ FIELD EXPERIENCE ============ -->
+<section id="field">
+  <div class="container">
+    <div class="section-label">04 / Field Experience</div>
+    <h2 class="section-title">From <em>simulation</em> to the real thing.</h2>
+    <div class="field-grid">
+
+      <div class="field-card">
+        <div class="field-img">
+          <img src="images/spot.jpg" alt="Boston Dynamics Spot" onerror="this.outerHTML='<div class=\'placeholder\'><span>IMG//</span>images/spot.jpg</div>'">
+        </div>
+        <div class="field-body">
+          <div class="hw-tag">Boston Dynamics</div>
+          <h3>Spot - Arm <em>throwing</em> &amp; field ops.</h3>
+          <p>
+            Designed an Isaac Lab RL environment for the Spot arm to perform dynamic
+            ball-throwing - full physics pipeline including forward kinematics,
+            Jacobian-based tip velocity, ballistic trajectory prediction, and a two-ball
+            kinematic / dynamic release system. Currently iterating in version V29 with
+            curriculum learning across distance and lateral targeting.
+          </p>
+          <p>
+            On the deployment side: zero-shot policy transfer onto real Spot via the
+            Boston Dynamics SDK, including grasp pipelines that fuse fisheye camera
+            data with TAK/TAKX situational awareness for field operations.
+          </p>
+          <div class="meta">
+            <span><b>SIM//</b> Isaac Lab + PhysX</span>
+            <span><b>ALGO//</b> PPO via RSL-RL</span>
+            <span><b>STATE//</b> V29 in training</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="field-card">
+        <div class="field-img">
+          <img src="images/drone.jpg" alt="UAV / Drone" onerror="this.outerHTML='<div class=\'placeholder\'><span>IMG//</span>images/drone.jpg</div>'">
+        </div>
+        <div class="field-body">
+          <div class="hw-tag">Aerial</div>
+          <h3>Drones &amp; <em>aerial</em> autonomy.</h3>
+          <p>
+            UAV operations work covering flight control, onboard perception, and
+            integration with field tooling. Treats the drone the same way as any other
+            robot: a closed-loop system between policy, sensors, and the physical world.
+          </p>
+          <div class="meta">
+            <span><b>STACK//</b> ROS 2</span>
+            <span><b>FOCUS//</b> Perception + control</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ GAME ============ -->
+<section id="game" class="game-section">
+  <div class="container">
+    <div class="section-label">05 / Game</div>
+    <div class="game-intro">
+      <h2 class="section-title" style="margin-bottom:0;">Now playing: <em>Space Defender</em>.</h2>
+      <p>
+        Built from scratch in HTML5 / Canvas. Click into the frame and use the keyboard
+        to play. Hit reload if you crash too hard.
+      </p>
+    </div>
+    <div class="game-frame">
+      <div class="game-bar">
+        <div class="dots"><span></span><span></span><span></span></div>
+        <div class="title">SPACE_DEFENDER.HTML</div>
+        <div class="status">// READY</div>
+      </div>
+      <iframe class="game-iframe" src="space_defender.html" title="Space Defender Game"
+        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"></iframe>
+      <div class="game-fallback">
+        space_defender.html not found yet - drop the game file in the repo root and refresh.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PROJECTS ============ -->
+<section id="projects">
+  <div class="container">
+    <div class="section-label">06 / Projects</div>
+    <h2 class="section-title">Selected <em>open-source</em> work.</h2>
+    <div class="projects-grid">
+
+      <a href="https://github.com/bmaxdk/AlphaZero-TicTacToe" target="_blank" rel="noopener" class="project-card">
+        <div class="tag">Multi-Agent RL</div>
+        <h3>AlphaZero - TicTacToe</h3>
+        <p>
+          AlphaZero implementation with Monte-Carlo Tree Search and joint policy/critic
+          training. Walks through the loss function and self-play loop.
+        </p>
+        <div class="stack">PyTorch · MCTS · Self-play</div>
+        <span class="link">View on GitHub</span>
+      </a>
+
+      <a href="https://github.com/bmaxdk/NN-PyTorch" target="_blank" rel="noopener" class="project-card">
+        <div class="tag">Foundations</div>
+        <h3>Neural Networks in PyTorch</h3>
+        <p>
+          Reference implementations of core neural network architectures and training
+          loops - a clean refresher for production work.
+        </p>
+        <div class="stack">PyTorch · CNN · RNN</div>
+        <span class="link">View on GitHub</span>
+      </a>
+
+      <a href="https://github.com/bmaxdk/OpenAI-Gym-CartPole-v1-HillClimbing" target="_blank" rel="noopener" class="project-card">
+        <div class="tag">Policy Search</div>
+        <h3>CartPole - Hill Climbing</h3>
+        <p>
+          Hill-climbing with adaptive noise scaling on CartPole-v1. Stochastic policy
+          search without gradient information.
+        </p>
+        <div class="stack">Gym · NumPy · Policy search</div>
+        <span class="link">View on GitHub</span>
+      </a>
+
+      <a href="https://github.com/bmaxdk/OpenAI-Gym-MountainCar-v0-CrossEntropy" target="_blank" rel="noopener" class="project-card">
+        <div class="tag">Policy Search</div>
+        <h3>MountainCar - Cross-Entropy</h3>
+        <p>
+          Cross-entropy method on MountainCarContinuous. Population-based optimization
+          for continuous control.
+        </p>
+        <div class="stack">Gym · CEM · Continuous control</div>
+        <span class="link">View on GitHub</span>
+      </a>
+
+      <a href="https://github.com/bmaxdk" target="_blank" rel="noopener" class="project-card">
+        <div class="tag">Repository Index</div>
+        <h3>More on GitHub →</h3>
+        <p>
+          Full archive of experiments, robotics tooling, and side projects. The visible
+          tip of an iceberg of training runs and lab notebooks.
+        </p>
+        <div class="stack">github.com/bmaxdk</div>
+        <span class="link">Open Profile</span>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ COURSEWORK ============ -->
+<section id="coursework">
+  <div class="container">
+    <div class="section-label">07 / Coursework</div>
+    <h2 class="section-title">Studies &amp; <em>specializations</em>.</h2>
+    <div class="course-list">
+
+      <div class="course-row">
+        <div class="num">001</div>
+        <div class="name">Deep Reinforcement Learning</div>
+        <div class="focus">Policy gradients · DQN · Actor-critic</div>
+        <div class="where">Self-directed / Udacity</div>
+      </div>
+
+      <div class="course-row">
+        <div class="num">002</div>
+        <div class="name">Robotics: Perception &amp; Control</div>
+        <div class="focus">Kinematics · Sensor fusion · SLAM</div>
+        <div class="where">Graduate Coursework</div>
+      </div>
+
+      <div class="course-row">
+        <div class="num">003</div>
+        <div class="name">Computer Vision</div>
+        <div class="focus">CNNs · Detection · Segmentation</div>
+        <div class="where">Graduate Coursework</div>
+      </div>
+
+      <div class="course-row">
+        <div class="num">004</div>
+        <div class="name">Deep Learning</div>
+        <div class="focus">Optimization · Regularization · Transformers</div>
+        <div class="where">Graduate Coursework</div>
+      </div>
+
+      <div class="course-row">
+        <div class="num">005</div>
+        <div class="name">Natural Language Processing</div>
+        <div class="focus">LLMs · Fine-tuning · RLHF</div>
+        <div class="where">Graduate Coursework</div>
+      </div>
+
+      <div class="course-row">
+        <div class="num">006</div>
+        <div class="name">Linear Algebra &amp; Probability</div>
+        <div class="focus">Matrix calculus · Stochastic processes</div>
+        <div class="where">Foundations</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============ FOOTER ============ -->
+<footer id="contact">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4>// Contact</h4>
+        <div class="big">
+          Let's build something that <em>moves</em>.
+        </div>
+        <p style="color:var(--fg-dim); max-width:480px;">
+          Open to collaborations, research conversations, and engineering work in
+          robotics, RL, and edge AI.
+        </p>
+      </div>
+      <div>
+        <h4>Channels</h4>
+        <div class="footer-links">
+          <a href="https://github.com/bmaxdk" target="_blank" rel="noopener" class="ext">GitHub - bmaxdk</a>
+          <a href="https://www.linkedin.com/in/howard-h-cho/" target="_blank" rel="noopener" class="ext">LinkedIn - Howard H. Cho</a>
+        </div>
+      </div>
+      <div>
+        <h4>Index</h4>
+        <div class="footer-links">
+          <a href="#about">01 / About</a>
+          <a href="#skills">02 / Stack</a>
+          <a href="#hardware">03 / Hardware</a>
+          <a href="#field">04 / Field</a>
+          <a href="#game">05 / Game</a>
+          <a href="#projects">06 / Projects</a>
+          <a href="#coursework">07 / Coursework</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 HOWARD H. CHO · ALL SYSTEMS NOMINAL</span>
+      <span>BUILT WITH HTML, CSS &amp; A LITTLE RL</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Subtle: highlight nav link of current section
+  const sections = document.querySelectorAll('section, header.hero, footer');
+  const links = document.querySelectorAll('.nav-links a');
+  const linkMap = {};
+  links.forEach(l => linkMap[l.getAttribute('href').slice(1)] = l);
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.style.color = '');
+        const id = e.target.id;
+        if (linkMap[id]) linkMap[id].style.color = 'var(--accent)';
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px' });
+  sections.forEach(s => obs.observe(s));
+</script>
+
+</body>
+</html>
