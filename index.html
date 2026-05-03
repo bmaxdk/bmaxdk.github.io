@@ -425,8 +425,51 @@
   }
   .game-intro p {
     color: var(--fg-dim);
-    max-width: 480px;
+    max-width: 520px;
     font-size: 15px;
+  }
+  .game-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 0;
+    border: 1px solid var(--line);
+    border-bottom: none;
+    background: var(--bg-card);
+  }
+  .game-tab {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-right: 1px solid var(--line);
+    color: var(--fg-dim);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 18px 24px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .game-tab:last-child { border-right: none; }
+  .game-tab:hover { color: var(--fg); background: var(--bg-soft); }
+  .game-tab.active {
+    color: var(--accent);
+    background: var(--bg);
+    box-shadow: inset 0 -2px 0 var(--accent);
+  }
+  .game-tab .tab-num {
+    font-size: 9px;
+    color: var(--fg-faint);
+    letter-spacing: 0.18em;
+  }
+  .game-tab.active .tab-num { color: var(--accent); }
+  .game-tab .tab-name { font-weight: 700; font-size: 12px; }
+  .game-tab .tab-desc {
+    font-size: 9px; color: var(--fg-faint);
+    text-transform: none; letter-spacing: 0.05em;
+    margin-top: 2px; font-weight: 400;
   }
   .game-frame {
     border: 1px solid var(--line);
@@ -452,13 +495,29 @@
   .game-bar .dots span:nth-child(2) { background: #ffbd2e; }
   .game-bar .dots span:nth-child(3) { background: #27c93f; }
   .game-bar .title { color: var(--accent); text-transform: uppercase; }
-  .game-bar .status { color: var(--fg-dim); }
+  .game-bar .status { color: var(--fg-dim); display: flex; align-items: center; gap: 8px; }
   .game-iframe {
     width: 100%;
     height: 640px;
     border: none;
     display: block;
     background: #000;
+  }
+  .game-note {
+    margin-top: 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--fg-dim);
+    letter-spacing: 0.05em;
+    padding: 16px 20px;
+    border: 1px dashed var(--line);
+    background: rgba(255, 92, 31, 0.04);
+  }
+  .game-note b { color: var(--accent); font-weight: 500; }
+  @media (max-width: 700px) {
+    .game-tabs { flex-direction: column; }
+    .game-tab { border-right: none; border-bottom: 1px solid var(--line); }
+    .game-tab:last-child { border-bottom: none; }
   }
 
   /* ---------- PROJECTS ---------- */
@@ -710,7 +769,7 @@
       <a href="#skills">Skills</a>
       <a href="#hardware">Hardware</a>
       <a href="#field">Field</a>
-      <a href="#game">Game</a>
+      <a href="#game">Games</a>
       <a href="#projects">Projects</a>
       <a href="#education">Education</a>
     </div>
@@ -993,21 +1052,39 @@
 <!-- ============ GAME ============ -->
 <section id="game" class="game-section">
   <div class="container">
-    <div class="section-label">05 / Game</div>
+    <div class="section-label">05 / Games</div>
     <div class="game-intro">
-      <h2 class="section-title" style="margin-bottom:0;">Now playing: <em>Space Defender</em>.</h2>
+      <h2 class="section-title" style="margin-bottom:0;">Built from <em>scratch</em>.</h2>
       <p>
-        Built from scratch in HTML5 / Canvas. Click into the frame and use the keyboard
-        to play.
+        Two browser games written in HTML5 Canvas. Side projects keep the
+        fundamentals sharp — and one of them is a thinly-veiled <strong style="color:var(--fg);">excuse to play with the same ballistic math</strong> that drives the Spot throwing environment.
       </p>
     </div>
+
+    <div class="game-tabs" role="tablist">
+      <button class="game-tab active" data-game="space_defender.html" data-title="SPACE_DEFENDER.HTML" role="tab">
+        <span class="tab-num">// 01</span>
+        <span class="tab-name">SPACE DEFENDER</span>
+        <span class="tab-desc">Arcade shooter · waves &amp; score</span>
+      </button>
+      <button class="game-tab" data-game="ballistic.html" data-title="BALLISTIC.HTML" role="tab">
+        <span class="tab-num">// 02</span>
+        <span class="tab-name">BALLISTIC</span>
+        <span class="tab-desc">Projectile physics · trajectory game</span>
+      </button>
+    </div>
+
     <div class="game-frame">
       <div class="game-bar">
         <div class="dots"><span></span><span></span><span></span></div>
-        <div class="title">SPACE_DEFENDER.HTML</div>
-        <div class="status">// READY</div>
+        <div class="title" id="game-title">SPACE_DEFENDER.HTML</div>
+        <div class="status"><span class="pulse"></span> READY</div>
       </div>
-      <iframe class="game-iframe" src="space_defender.html" title="Space Defender Game"></iframe>
+      <iframe class="game-iframe" id="game-iframe" src="space_defender.html" title="Game"></iframe>
+    </div>
+
+    <div class="game-note">
+      <b>// NOTE:</b> Ballistic shares its core math — gravity-driven trajectories, tip-velocity release, target prediction — with the Spot arm throwing environment. Same physics, different controller. Sometimes the fastest way to debug a reward function is to play with the dynamics yourself.
     </div>
   </div>
 </section>
@@ -1236,7 +1313,7 @@
           <a href="#skills">02 / Stack</a>
           <a href="#hardware">03 / Hardware</a>
           <a href="#field">04 / Field</a>
-          <a href="#game">05 / Game</a>
+          <a href="#game">05 / Games</a>
           <a href="#projects">06 / Projects</a>
           <a href="#education">07 / Education</a>
         </div>
@@ -1265,6 +1342,21 @@
     });
   }, { rootMargin: '-40% 0px -55% 0px' });
   sections.forEach(s => obs.observe(s));
+
+  // Game tab switcher
+  const gameTabs = document.querySelectorAll('.game-tab');
+  const gameIframe = document.getElementById('game-iframe');
+  const gameTitle = document.getElementById('game-title');
+  gameTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      gameTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const src = tab.getAttribute('data-game');
+      const title = tab.getAttribute('data-title');
+      gameIframe.src = src;
+      gameTitle.textContent = title;
+    });
+  });
 </script>
 
 </body>
