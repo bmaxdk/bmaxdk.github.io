@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Howard H. Cho - Robotics & Reinforcement Learning Engineer</title>
-<meta name="description" content="Howard H. Cho - Robotics and reinforcement learning engineer. Boston Dynamics Spot, drones, Jetson AGX Thor, DGX Spark, Unitree Go1." />
+<title>Howard H. Cho — Robotics & Reinforcement Learning Engineer</title>
+<meta name="description" content="Howard H. Cho — Robotics and reinforcement learning engineer. Boston Dynamics Spot, drones, Jetson AGX Thor, DGX Spark, Unitree Go1." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;700&family=Inter+Tight:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
@@ -460,15 +460,6 @@
     display: block;
     background: #000;
   }
-  .game-fallback {
-    display: none;
-    padding: 80px 40px;
-    text-align: center;
-    color: var(--fg-dim);
-    font-family: var(--mono);
-    font-size: 13px;
-    background: #000;
-  }
 
   /* ---------- PROJECTS ---------- */
   .projects-grid {
@@ -530,41 +521,120 @@
   .project-card:hover .link::after { transform: translate(2px, -2px); }
 
   /* ---------- COURSEWORK ---------- */
-  .course-list { border-top: 1px solid var(--line); }
-  .course-row {
+  .uw-banner {
+    border: 1px solid var(--line);
+    background: var(--bg-card);
+    padding: 32px 36px;
+    margin-bottom: 60px;
     display: grid;
-    grid-template-columns: 80px 1fr 200px 180px;
-    gap: 30px;
+    grid-template-columns: 1fr auto;
+    gap: 40px;
     align-items: center;
-    padding: 28px 0;
-    border-bottom: 1px solid var(--line);
-    transition: background 0.25s ease;
-    padding-left: 16px; padding-right: 16px;
   }
-  .course-row:hover { background: var(--bg-soft); }
-  .course-row .num {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--fg-faint);
-  }
-  .course-row .name {
+  .uw-banner h3 {
     font-family: var(--serif);
-    font-size: 24px;
-    line-height: 1.2;
+    font-size: 32px;
+    font-weight: 400;
+    line-height: 1.15;
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
   }
-  .course-row .focus {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--fg-dim);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-  }
-  .course-row .where {
-    font-family: var(--mono);
-    font-size: 11px;
+  .uw-banner .school {
     color: var(--accent);
-    text-align: right;
+    font-family: var(--mono); font-size: 11px;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    margin-bottom: 14px;
   }
+  .uw-banner p {
+    color: var(--fg-dim); font-size: 14px;
+    line-height: 1.6; max-width: 540px;
+  }
+  .uw-seal {
+    font-family: var(--serif);
+    text-align: center;
+    padding: 18px 24px;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+  }
+  .uw-seal .lg {
+    font-size: 32px; line-height: 1;
+    font-style: italic;
+    display: block; margin-bottom: 4px;
+  }
+  .uw-seal .sm {
+    font-family: var(--mono); font-size: 9px;
+    letter-spacing: 0.2em; text-transform: uppercase;
+  }
+
+  .course-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+  .course-card {
+    border: 1px solid var(--line);
+    background: var(--bg-card);
+    padding: 28px 28px;
+    transition: all 0.3s ease;
+  }
+  .course-card:hover {
+    border-color: var(--accent);
+    background: var(--bg-soft);
+  }
+  .course-card .top {
+    display: flex; justify-content: space-between;
+    align-items: start; margin-bottom: 14px;
+  }
+  .course-card .code {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--accent); letter-spacing: 0.12em;
+    font-weight: 700;
+  }
+  .course-card .num {
+    font-family: var(--mono); font-size: 10px;
+    color: var(--fg-faint); letter-spacing: 0.15em;
+  }
+  .course-card h3 {
+    font-family: var(--serif); font-size: 24px;
+    font-weight: 400; line-height: 1.15;
+    margin-bottom: 12px; letter-spacing: -0.01em;
+  }
+  .course-card h3 em { font-style: italic; color: var(--accent); }
+  .course-card .takeaway {
+    color: var(--fg-dim); font-size: 14px;
+    line-height: 1.6; margin-bottom: 16px;
+  }
+  .course-card .takeaway b { color: var(--accent); font-weight: 500; }
+  .course-card .applies {
+    font-family: var(--mono); font-size: 10px;
+    color: var(--fg-dim); letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding-top: 14px;
+    border-top: 1px dashed var(--line);
+  }
+  .course-card .applies span { color: var(--fg); }
+
+  .course-summary {
+    border: 1px solid var(--line);
+    background: var(--bg-soft);
+    padding: 28px 32px;
+  }
+  .course-summary h4 {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--accent); letter-spacing: 0.15em;
+    text-transform: uppercase; margin-bottom: 18px;
+  }
+  .course-summary .pills {
+    display: flex; flex-wrap: wrap; gap: 8px;
+  }
+  .course-summary .pill {
+    font-family: var(--mono); font-size: 11px;
+    color: var(--fg); letter-spacing: 0.05em;
+    padding: 7px 12px; border: 1px solid var(--line);
+    background: var(--bg);
+  }
+  .course-summary .pill b { color: var(--accent); margin-right: 6px; font-weight: 500; }
 
   /* ---------- FOOTER ---------- */
   footer {
@@ -623,19 +693,8 @@
     .hardware-grid { grid-template-columns: 1fr; }
     .field-grid { grid-template-columns: 1fr; }
     .footer-grid { grid-template-columns: 1fr; gap: 40px; }
-    .course-row {
-      grid-template-columns: 50px 1fr;
-      grid-template-areas:
-        'num name'
-        '.   focus'
-        '.   where';
-      gap: 8px;
-      padding: 20px 12px;
-    }
-    .course-row .num { grid-area: num; }
-    .course-row .name { grid-area: name; font-size: 20px; }
-    .course-row .focus { grid-area: focus; }
-    .course-row .where { grid-area: where; text-align: left; }
+    .uw-banner { grid-template-columns: 1fr; padding: 24px; }
+    .course-grid { grid-template-columns: 1fr; }
     .game-iframe { height: 480px; }
   }
 </style>
@@ -653,7 +712,7 @@
       <a href="#field">Field</a>
       <a href="#game">Game</a>
       <a href="#projects">Projects</a>
-      <a href="#contact">Contact</a>
+      <a href="#education">Education</a>
     </div>
     <div class="nav-status">
       <span class="pulse"></span>
@@ -677,7 +736,7 @@
     </h1>
     <p class="hero-tagline">
       I teach machines how to move. <strong>Reinforcement learning</strong> for legged
-      robots, manipulators, and aerial systems - bridging the gap between Isaac Lab
+      robots, manipulators, and aerial systems — bridging the gap between Isaac Lab
       simulations and real hardware in the field.
     </p>
     <div class="hero-cta">
@@ -710,18 +769,20 @@
         <p>
           My focus is closing the sim-to-real gap. I design RL environments in
           <strong>Isaac Lab</strong>, train policies with PPO/GRPO, and deploy them onto
-          quadrupeds, manipulators, and aerial platforms - the kind of work where the
+          quadrupeds, manipulators, and aerial platforms — the kind of work where the
           training curve is half the story and the other half lives on a robot.
+        </p>
+        <p>
+          The foundations come from <strong>graduate study at the University of
+          Washington</strong>, where I worked through linear and nonlinear control,
+          convex optimization, machine learning, and computer vision before pulling
+          them all into the same pipeline.
         </p>
         <p>
           Hands-on with the full stack: NVIDIA Jetson edge compute, ROS&nbsp;2,
           PhysX-based simulation, custom reward shaping, and field-operations tooling
           like TAK/TAKX integration. I write the training code, build the rigs, and
           drive the robots when it's time to test.
-        </p>
-        <p>
-          Outside of work, I build small games and tools - because if you can't make
-          something fun, you probably can't make something useful either.
         </p>
       </div>
     </div>
@@ -755,13 +816,13 @@
         </ul>
       </div>
       <div class="skill-block">
-        <h3>Robotics</h3>
+        <h3>Robotics &amp; Control</h3>
         <ul>
           <li>Boston Dynamics Spot SDK</li>
           <li>Unitree Go1 control</li>
           <li>ROS 2 (Humble) / Zenoh</li>
           <li>Forward kinematics &amp; Jacobians</li>
-          <li>Whole-body control</li>
+          <li>Linear &amp; nonlinear control</li>
         </ul>
       </div>
       <div class="skill-block">
@@ -834,7 +895,7 @@
           <div class="hw-tag">Workstation</div>
           <h3>DGX Spark</h3>
           <p>
-            NVIDIA's desktop AI workstation - the local sandbox for fine-tuning and
+            NVIDIA's desktop AI workstation — the local sandbox for fine-tuning and
             distillation runs that are too heavy for the edge but don't need a full
             datacenter. Pairs cleanly with the Thor for asymmetric workflows.
           </p>
@@ -853,9 +914,9 @@
         </div>
         <div class="hw-body">
           <div class="hw-tag">Field Robot</div>
-          <h3>AGX Orin X Unitree Go1</h3>
+          <h3>AGX Orin × Unitree Go1</h3>
           <p>
-            A Jetson AGX Orin mounted directly on a Unitree Go1 quadruped - onboard
+            A Jetson AGX Orin mounted directly on a Unitree Go1 quadruped — onboard
             perception, ROS&nbsp;2 nodes, and policy inference running at the edge with
             no cloud dependency. The whole platform walks where it's told.
           </p>
@@ -885,10 +946,10 @@
         </div>
         <div class="field-body">
           <div class="hw-tag">Boston Dynamics</div>
-          <h3>Spot - Arm <em>throwing</em> &amp; field ops.</h3>
+          <h3>Spot — Arm <em>throwing</em> &amp; field ops.</h3>
           <p>
             Designed an Isaac Lab RL environment for the Spot arm to perform dynamic
-            ball-throwing - full physics pipeline including forward kinematics,
+            ball-throwing — full physics pipeline including forward kinematics,
             Jacobian-based tip velocity, ballistic trajectory prediction, and a two-ball
             kinematic / dynamic release system. Currently iterating in version V29 with
             curriculum learning across distance and lateral targeting.
@@ -937,7 +998,7 @@
       <h2 class="section-title" style="margin-bottom:0;">Now playing: <em>Space Defender</em>.</h2>
       <p>
         Built from scratch in HTML5 / Canvas. Click into the frame and use the keyboard
-        to play. Hit reload if you crash too hard.
+        to play.
       </p>
     </div>
     <div class="game-frame">
@@ -946,11 +1007,7 @@
         <div class="title">SPACE_DEFENDER.HTML</div>
         <div class="status">// READY</div>
       </div>
-      <iframe class="game-iframe" src="space_defender.html" title="Space Defender Game"
-        onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"></iframe>
-      <div class="game-fallback">
-        space_defender.html not found yet - drop the game file in the repo root and refresh.
-      </div>
+      <iframe class="game-iframe" src="space_defender.html" title="Space Defender Game"></iframe>
     </div>
   </div>
 </section>
@@ -964,7 +1021,7 @@
 
       <a href="https://github.com/bmaxdk/AlphaZero-TicTacToe" target="_blank" rel="noopener" class="project-card">
         <div class="tag">Multi-Agent RL</div>
-        <h3>AlphaZero - TicTacToe</h3>
+        <h3>AlphaZero — TicTacToe</h3>
         <p>
           AlphaZero implementation with Monte-Carlo Tree Search and joint policy/critic
           training. Walks through the loss function and self-play loop.
@@ -978,7 +1035,7 @@
         <h3>Neural Networks in PyTorch</h3>
         <p>
           Reference implementations of core neural network architectures and training
-          loops - a clean refresher for production work.
+          loops — a clean refresher for production work.
         </p>
         <div class="stack">PyTorch · CNN · RNN</div>
         <span class="link">View on GitHub</span>
@@ -986,7 +1043,7 @@
 
       <a href="https://github.com/bmaxdk/OpenAI-Gym-CartPole-v1-HillClimbing" target="_blank" rel="noopener" class="project-card">
         <div class="tag">Policy Search</div>
-        <h3>CartPole - Hill Climbing</h3>
+        <h3>CartPole — Hill Climbing</h3>
         <p>
           Hill-climbing with adaptive noise scaling on CartPole-v1. Stochastic policy
           search without gradient information.
@@ -997,7 +1054,7 @@
 
       <a href="https://github.com/bmaxdk/OpenAI-Gym-MountainCar-v0-CrossEntropy" target="_blank" rel="noopener" class="project-card">
         <div class="tag">Policy Search</div>
-        <h3>MountainCar - Cross-Entropy</h3>
+        <h3>MountainCar — Cross-Entropy</h3>
         <p>
           Cross-entropy method on MountainCarContinuous. Population-based optimization
           for continuous control.
@@ -1021,56 +1078,133 @@
   </div>
 </section>
 
-<!-- ============ COURSEWORK ============ -->
-<section id="coursework">
+<!-- ============ EDUCATION ============ -->
+<section id="education">
   <div class="container">
-    <div class="section-label">07 / Coursework</div>
-    <h2 class="section-title">Studies &amp; <em>specializations</em>.</h2>
-    <div class="course-list">
+    <div class="section-label">07 / Education</div>
+    <h2 class="section-title">Six courses that <em>shaped</em> the work.</h2>
 
-      <div class="course-row">
-        <div class="num">001</div>
-        <div class="name">Deep Reinforcement Learning</div>
-        <div class="focus">Policy gradients · DQN · Actor-critic</div>
-        <div class="where">Self-directed / Udacity</div>
+    <div class="uw-banner">
+      <div>
+        <div class="school">// University of Washington</div>
+        <h3>Graduate coursework — Mechanical Engineering, CSE, Applied Math &amp; EE.</h3>
+        <p>
+          A cross-departmental graduate program covering control theory, optimization,
+          machine learning, computer vision, and parallel computing. The mix that lets me
+          treat robotics as one stack instead of three disconnected fields.
+        </p>
+      </div>
+      <div class="uw-seal">
+        <span class="lg">UW</span>
+        <span class="sm">Graduate Studies</span>
+      </div>
+    </div>
+
+    <div class="course-grid">
+
+      <div class="course-card">
+        <div class="top">
+          <div class="code">CSE 571</div>
+          <div class="num">// 01</div>
+        </div>
+        <h3>AI-Based <em>Mobile Robotics</em>.</h3>
+        <p class="takeaway">
+          The <b>core class</b> for everything I do now. Probabilistic state estimation,
+          motion planning, and decision-making under uncertainty for mobile platforms.
+          Set the foundation for thinking about Spot, Go1, and drones as estimation +
+          control problems first, learning second.
+        </p>
+        <div class="applies">APPLIED IN: <span>Spot</span> · <span>Go1</span> · <span>Drone Ops</span></div>
       </div>
 
-      <div class="course-row">
-        <div class="num">002</div>
-        <div class="name">Robotics: Perception &amp; Control</div>
-        <div class="focus">Kinematics · Sensor fusion · SLAM</div>
-        <div class="where">Graduate Coursework</div>
+      <div class="course-card">
+        <div class="top">
+          <div class="code">CSE 546</div>
+          <div class="num">// 02</div>
+        </div>
+        <h3>Machine <em>Learning</em>.</h3>
+        <p class="takeaway">
+          Foundations of supervised, unsupervised, and probabilistic learning — bias /
+          variance, regularization, kernel methods. <b>Everything downstream</b> in deep
+          RL and policy learning rests on these mechanics.
+        </p>
+        <div class="applies">APPLIED IN: <span>RL Pipelines</span> · <span>LLM Fine-tuning</span></div>
       </div>
 
-      <div class="course-row">
-        <div class="num">003</div>
-        <div class="name">Computer Vision</div>
-        <div class="focus">CNNs · Detection · Segmentation</div>
-        <div class="where">Graduate Coursework</div>
+      <div class="course-card">
+        <div class="top">
+          <div class="code">ME 547</div>
+          <div class="num">// 03</div>
+        </div>
+        <h3>Linear <em>Systems</em>.</h3>
+        <p class="takeaway">
+          State-space modeling, controllability, observability, and the linear-algebra
+          backbone of modern control. <b>This is how you talk to a robot</b> before you
+          start training a policy on top of it. Direct line to the Jacobian-based
+          tip-velocity work in the Spot throwing environment.
+        </p>
+        <div class="applies">APPLIED IN: <span>Spot Arm</span> · <span>Manipulator Dynamics</span></div>
       </div>
 
-      <div class="course-row">
-        <div class="num">004</div>
-        <div class="name">Deep Learning</div>
-        <div class="focus">Optimization · Regularization · Transformers</div>
-        <div class="where">Graduate Coursework</div>
+      <div class="course-card">
+        <div class="top">
+          <div class="code">ME 583</div>
+          <div class="num">// 04</div>
+        </div>
+        <h3>Nonlinear <em>Control</em>.</h3>
+        <p class="takeaway">
+          Lyapunov methods, sliding-mode and feedback-linearization techniques, stability
+          analysis for nonlinear plants. Real robots are nonlinear. <b>Intuition for
+          stability</b> is what tells you when an RL policy is going to fail before it does.
+        </p>
+        <div class="applies">APPLIED IN: <span>Sim-to-Real</span> · <span>Reward Shaping</span></div>
       </div>
 
-      <div class="course-row">
-        <div class="num">005</div>
-        <div class="name">Natural Language Processing</div>
-        <div class="focus">LLMs · Fine-tuning · RLHF</div>
-        <div class="where">Graduate Coursework</div>
+      <div class="course-card">
+        <div class="top">
+          <div class="code">CSE 578 / ME 578</div>
+          <div class="num">// 05</div>
+        </div>
+        <h3>Convex <em>Optimization</em>.</h3>
+        <p class="takeaway">
+          Convex analysis, duality, and algorithms — the mathematical engine room of
+          modern ML and control. <b>Every gradient descent step</b> in PPO is a child of
+          this course. Same for QP-based whole-body controllers and trajectory optimizers.
+        </p>
+        <div class="applies">APPLIED IN: <span>PPO / GRPO</span> · <span>Trajectory Opt</span></div>
       </div>
 
-      <div class="course-row">
-        <div class="num">006</div>
-        <div class="name">Linear Algebra &amp; Probability</div>
-        <div class="focus">Matrix calculus · Stochastic processes</div>
-        <div class="where">Foundations</div>
+      <div class="course-card">
+        <div class="top">
+          <div class="code">CSE 576</div>
+          <div class="num">// 06</div>
+        </div>
+        <h3>Computer <em>Vision</em>.</h3>
+        <p class="takeaway">
+          Geometry, multi-view, and learning-based vision — from camera models and
+          calibration through CNNs and detection. Direct application: the <b>fisheye
+          camera grasp pipeline</b> on Spot, and the perception loop on the Go1.
+        </p>
+        <div class="applies">APPLIED IN: <span>Spot Grasp</span> · <span>Go1 Perception</span></div>
       </div>
 
     </div>
+
+    <div class="course-summary">
+      <h4>// Additional UW coursework</h4>
+      <div class="pills">
+        <span class="pill"><b>AMATH 584</b>Applied Linear Algebra &amp; Numerical Analysis</span>
+        <span class="pill"><b>ME 574</b>Applied Parallel Computing</span>
+        <span class="pill"><b>CSE 573</b>Artificial Intelligence I</span>
+        <span class="pill"><b>EE 586</b>Digital Video Coding Systems</span>
+        <span class="pill"><b>ME 588</b>Dynamics &amp; Vibrations</span>
+        <span class="pill"><b>CSE 415</b>Intro to Artificial Intelligence</span>
+        <span class="pill"><b>ME 548</b>Linear Multivariable Control</span>
+        <span class="pill"><b>ME 564</b>Mechanical Engineering Analysis I</span>
+        <span class="pill"><b>ME 565</b>Mechanical Engineering Analysis II</span>
+      </div>
+    </div>
+
   </div>
 </section>
 
@@ -1091,8 +1225,8 @@
       <div>
         <h4>Channels</h4>
         <div class="footer-links">
-          <a href="https://github.com/bmaxdk" target="_blank" rel="noopener" class="ext">GitHub - bmaxdk</a>
-          <a href="https://www.linkedin.com/in/howard-h-cho/" target="_blank" rel="noopener" class="ext">LinkedIn - Howard H. Cho</a>
+          <a href="https://github.com/bmaxdk" target="_blank" rel="noopener" class="ext">GitHub — bmaxdk</a>
+          <a href="https://www.linkedin.com/in/howard-h-cho/" target="_blank" rel="noopener" class="ext">LinkedIn — Howard H. Cho</a>
         </div>
       </div>
       <div>
@@ -1104,7 +1238,7 @@
           <a href="#field">04 / Field</a>
           <a href="#game">05 / Game</a>
           <a href="#projects">06 / Projects</a>
-          <a href="#coursework">07 / Coursework</a>
+          <a href="#education">07 / Education</a>
         </div>
       </div>
     </div>
@@ -1116,7 +1250,7 @@
 </footer>
 
 <script>
-  // Subtle: highlight nav link of current section
+  // Highlight nav link of current section
   const sections = document.querySelectorAll('section, header.hero, footer');
   const links = document.querySelectorAll('.nav-links a');
   const linkMap = {};
